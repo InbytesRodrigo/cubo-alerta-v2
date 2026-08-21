@@ -161,10 +161,18 @@ function renderLeadDetailPanel(leadId) {
         });
     }
 
+    const isSemSucesso = lead.status === 'sem_sucesso';
+    const headerIcon = isSemSucesso ? 'ph-prohibit text-red-400' : 'ph-whatsapp-logo text-green-500';
+    const headerTitle = isSemSucesso ? 'Lead Sem Futuro' : 'Detalhe do Lead';
+    const avatarBg = isSemSucesso ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20';
+    const statusBadge = isSemSucesso
+        ? '<span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/40 text-red-400 flex items-center gap-1"><i class="ph ph-x-circle"></i> SEM FUTURO</span>'
+        : '<span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-green-500/15 border border-green-500/40 text-green-500 flex items-center gap-1"><i class="ph ph-check-circle"></i> ATIVO</span>';
+
     content.innerHTML = `
         <div class="flex items-center justify-between mb-5">
             <h2 class="text-lg font-semibold text-white flex items-center gap-2">
-                <i class="ph ph-whatsapp-logo text-green-500"></i> Detalhe do Lead
+                <i class="ph ${headerIcon}"></i> ${headerTitle}
             </h2>
             <button onclick="closeLeadDetail()" class="text-[var(--text-muted)] hover:text-white p-1"><i class="ph ph-x text-xl"></i></button>
         </div>
@@ -172,12 +180,15 @@ function renderLeadDetailPanel(leadId) {
         <!-- Info do Lead -->
         <div class="bg-[var(--bg-input)] rounded-xl p-4 mb-4">
             <div class="flex items-center gap-3 mb-3">
-                <div class="w-12 h-12 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 flex items-center justify-center font-bold text-sm shrink-0">
+                <div class="w-12 h-12 rounded-full ${avatarBg} border flex items-center justify-center font-bold text-sm shrink-0">
                     ${initials}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h3 class="font-bold text-white text-base">${lead.name}</h3>
-                    <p class="text-xs text-[var(--text-muted)] flex items-center gap-1">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-white text-base">${lead.name}</h3>
+                        ${statusBadge}
+                    </div>
+                    <p class="text-xs text-[var(--text-muted)] flex items-center gap-1 mt-0.5">
                         <i class="ph ph-whatsapp-logo text-green-500"></i> ${lead.phone || 'Sem telefone'}
                     </p>
                 </div>
@@ -185,21 +196,31 @@ function renderLeadDetailPanel(leadId) {
             <p class="text-[10px] text-[var(--text-muted)] mb-2 flex items-center gap-1">
                 <i class="ph ph-calendar"></i> Criado em ${createdDate ? formatDateBR(createdDate) : '-'}
             </p>
-            ${lead.description ? `<p class="text-sm text-gray-300 bg-[var(--bg-card)] p-3 rounded-lg border border-green-500/10">${lead.description}</p>` : ''}
+            ${lead.description ? `<p class="text-sm text-gray-300 bg-[var(--bg-card)] p-3 rounded-lg border ${isSemSucesso ? 'border-red-500/10' : 'border-green-500/10'}">${lead.description}</p>` : ''}
         </div>
 
         <!-- Botões de ação -->
-        <div class="grid grid-cols-2 gap-2 mb-5">
+        <div class="grid grid-cols-2 gap-2 mb-3">
             <a href="https://wa.me/55${(lead.phone || '').replace(/\D/g, '')}" target="_blank" class="py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5">
                 <i class="ph-bold ph-whatsapp-logo"></i> WhatsApp
             </a>
-            <button onclick="callLeadAgain('${lead.id}')" class="py-2.5 bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500 hover:border-orange-500 text-orange-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5">
-                <i class="ph ph-bell-ringing"></i> Chamar Novamente
-            </button>
+            ${isSemSucesso
+                ? `<button onclick="reactivateLead('${lead.id}')" class="py-2.5 bg-green-500/10 border border-green-500/40 hover:bg-green-500 hover:border-green-500 text-green-500 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5">
+                    <i class="ph ph-arrow-counter-clockwise"></i> Reativar
+                </button>`
+                : `<button onclick="callLeadAgain('${lead.id}')" class="py-2.5 bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500 hover:border-orange-500 text-orange-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5">
+                    <i class="ph ph-bell-ringing"></i> Chamar Novamente
+                </button>`
+            }
         </div>
-        <button onclick="markLeadAsSemSucesso('${lead.id}')" class="w-full py-2 bg-red-500/10 border border-red-500/30 hover:bg-red-500 hover:border-red-500 text-red-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5 mb-5">
-            <i class="ph ph-x-circle"></i> Marcar como Sem Sucesso
-        </button>
+        ${isSemSucesso
+            ? `<button onclick="callLeadAgain('${lead.id}')" class="w-full py-2 bg-orange-500/10 border border-orange-500/30 hover:bg-orange-500 hover:border-orange-500 text-orange-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5 mb-5">
+                <i class="ph ph-bell-ringing"></i> Chamar Novamente
+            </button>`
+            : `<button onclick="markLeadAsSemSucesso('${lead.id}')" class="w-full py-2 bg-red-500/10 border border-red-500/30 hover:bg-red-500 hover:border-red-500 text-red-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5 mb-5">
+                <i class="ph ph-x-circle"></i> Marcar como Sem Sucesso
+            </button>`
+        }
 
         <!-- Observações -->
         <div class="mb-2">
@@ -434,9 +455,11 @@ function renderSemFuturo() {
         const initials = lead.name.substring(0, 2).toUpperCase();
         const createdDate = lead.createdAt ? lead.createdAt.split('T')[0] : '';
         const updatedDate = lead.updatedAt ? lead.updatedAt.split('T')[0] : '';
+        const obs = leadObservations[lead.id] || [];
+        const isActive = activeLeadId === lead.id;
 
         container.innerHTML += `
-            <div class="bg-[var(--bg-card)] border border-red-500/20 hover:border-red-500/40 rounded-2xl p-4 flex items-center gap-4 transition-colors">
+            <div class="bg-[var(--bg-card)] border ${isActive ? 'border-red-500/60 ring-1 ring-red-500/20' : 'border-red-500/20 hover:border-red-500/40'} rounded-2xl p-4 flex items-center gap-4 transition-all cursor-pointer" onclick="openLeadDetail('${lead.id}')">
                 <div class="w-10 h-10 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center font-bold text-xs shrink-0">
                     ${initials}
                 </div>
@@ -445,10 +468,12 @@ function renderSemFuturo() {
                     <p class="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-0.5">
                         <span class="flex items-center gap-1"><i class="ph ph-whatsapp-logo text-green-500"></i> ${lead.phone || '-'}</span>
                         <span>·</span>
+                        <span>${obs.length} obs</span>
+                        <span>·</span>
                         <span>${updatedDate ? formatDateBR(updatedDate) : (createdDate ? formatDateBR(createdDate) : '')}</span>
                     </p>
                 </div>
-                <button onclick="reactivateLead('${lead.id}')" class="py-2 px-3 bg-green-500/10 border border-green-500/30 hover:bg-green-500 hover:border-green-500 text-green-500 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1 shrink-0">
+                <button onclick="event.stopPropagation(); reactivateLead('${lead.id}')" class="py-2 px-3 bg-green-500/10 border border-green-500/30 hover:bg-green-500 hover:border-green-500 text-green-500 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1 shrink-0">
                     <i class="ph ph-arrow-counter-clockwise"></i> Reativar
                 </button>
             </div>
