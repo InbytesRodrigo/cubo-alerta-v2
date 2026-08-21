@@ -269,6 +269,22 @@ function deleteAlert(id) {
     renderDashboard();
 }
 
+// --- Marcar como "Não Funcionou" ---
+function markAsNotWorked(id) {
+    const alert = alerts.find(a => a.id === id);
+    if (!alert) return;
+    if (!confirm(`Marcar o alerta de "${alert.name}" como NÃO FUNCIONOU?`)) return;
+
+    alert.status = 'completed';
+    alert.completionNotes = 'Não funcionou - contato sem sucesso';
+    alert.completedAt = new Date().toISOString();
+    alert.notWorked = true; // flag para diferenciar
+    saveData();
+
+    showToast(`Alerta de "${alert.name}" marcado como não funcionou.`, 'info');
+    renderDashboard();
+}
+
 // --- Renderização do Dashboard ---
         function renderDashboard() {
             const now = new Date();
@@ -397,9 +413,11 @@ function deleteAlert(id) {
                     </div>
 
                     <div class="mt-auto flex gap-2">
-                        <!-- Manual Action inside Dashboard -->
                         <button onclick="manualSnooze('${alert.id}', 15)" class="flex-1 py-2 bg-[var(--bg-input)] border border-[var(--border-color)] hover:bg-[var(--border-color)] rounded-xl text-xs font-medium text-[var(--text-muted)] hover:text-white transition-colors flex justify-center items-center gap-1"><i class="ph ph-clock"></i> Adiar</button>
-                        <a href="https://wa.me/55${alert.phone.replace(/\D/g,'')}" target="_blank" class="flex-1 py-2 bg-transparent border border-green-500/50 hover:bg-green-500 hover:border-green-500 text-green-500 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1 group/btn"><i class="ph-bold ph-whatsapp-logo group-hover/btn:scale-110 transition-transform"></i> Concluir / Falar</a>
+                        <a href="https://wa.me/55${alert.phone.replace(/\D/g,'')}" target="_blank" class="flex-1 py-2 bg-transparent border border-green-500/50 hover:bg-green-500 hover:border-green-500 text-green-500 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1 group/btn"><i class="ph-bold ph-whatsapp-logo group-hover/btn:scale-110 transition-transform"></i> Falar</a>
+                        <button onclick="markAsNotWorked('${alert.id}')" class="py-2 px-2.5 bg-red-500/10 border border-red-500/30 hover:bg-red-500 hover:border-red-500 text-red-400 hover:text-white rounded-xl text-xs font-medium transition-all flex justify-center items-center gap-1" title="Não funcionou">
+                            <i class="ph ph-x-circle"></i>
+                        </button>
                     </div>
                 </div>
             `;
@@ -966,13 +984,21 @@ function renderConcluidos() {
 
     concluidos.forEach(a => {
         const initials = a.name ? a.name.substring(0, 2).toUpperCase() : '??';
+        const isNotWorked = a.notWorked;
+        const borderColor = isNotWorked ? 'border-red-500/20' : 'border-green-500/20';
+        const badgeBg = isNotWorked ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-500';
+        const badgeIcon = isNotWorked ? 'ph-x-circle' : 'ph-check';
+        const badgeLabel = isNotWorked ? 'NÃO FUNCIONOU' : 'CONCLUÍDO';
+        const noteBorder = isNotWorked ? 'border-red-500' : 'border-green-500';
+        const noteLabel = isNotWorked ? 'text-red-400/70' : 'text-green-400/70';
+
         container.innerHTML += `
-            <div class="bg-[var(--bg-card)] border border-green-500/20 rounded-2xl p-5 flex flex-col relative group">
-                <div class="absolute top-4 right-4 bg-green-500/10 text-green-500 p-1.5 rounded-full"><i class="ph-bold ph-check"></i></div>
+            <div class="bg-[var(--bg-card)] ${borderColor} border rounded-2xl p-5 flex flex-col relative group">
+                <div class="absolute top-4 right-4 ${badgeBg} p-1.5 rounded-full flex items-center gap-1"><i class="ph-bold ${badgeIcon} text-sm"></i> <span class="text-[9px] font-bold tracking-wider">${badgeLabel}</span></div>
                 <div class="flex items-start gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 flex items-center justify-center font-bold text-xs shrink-0">${initials}</div>
+                    <div class="w-10 h-10 rounded-full ${badgeBg} border ${borderColor} flex items-center justify-center font-bold text-xs shrink-0">${initials}</div>
                     <div class="flex-1 min-w-0">
-                        <h3 class="font-bold text-white text-base pr-8 truncate">${a.name}</h3>
+                        <h3 class="font-bold text-white text-base pr-20 truncate">${a.name}</h3>
                         <p class="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-0.5">
                             <span class="flex items-center gap-1"><i class="ph ph-calendar-check"></i> ${formatDateBR(a.completedAt.split('T')[0])}</span>
                             <span>·</span>
@@ -985,8 +1011,8 @@ function renderConcluidos() {
 
                 ${a.subject ? `<p class="text-xs text-[var(--text-muted)] mb-3 line-clamp-1">${a.subject}</p>` : ''}
 
-                <div class="bg-[var(--bg-input)] p-3 rounded-xl text-sm text-gray-300 border-l-2 border-green-500 mb-4 line-clamp-3" title="${a.completionNotes}">
-                    <span class="text-green-400/70 text-xs font-medium"><i class="ph ph-chat-circle-dots"></i> Nota:</span> ${a.completionNotes}
+                <div class="bg-[var(--bg-input)] p-3 rounded-xl text-sm text-gray-300 border-l-2 ${noteBorder} mb-4 line-clamp-3" title="${a.completionNotes}">
+                    <span class="${noteLabel} text-xs font-medium"><i class="ph ph-chat-circle-dots"></i> Nota:</span> ${a.completionNotes}
                 </div>
 
                 <div class="mt-auto flex gap-2">
