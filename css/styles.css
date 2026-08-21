@@ -10,10 +10,10 @@
 :root {
     --brand-orange: #ff5a00;
     --brand-orange-hover: #e04f00;
-    --bg-base: #09090b; /* Preto profundo */
-    --bg-card: #121214; /* Cinza bem escuro para cards */
-    --bg-input: #18181b;
-    --border-color: #27272a;
+    --bg-base: #0c0c10;
+    --bg-card: #161619;
+    --bg-input: #1c1c21;
+    --border-color: #2e2e35;
     --text-main: #f4f4f5;
     --text-muted: #a1a1aa;
 }
@@ -174,30 +174,30 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 16px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 12px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 16px;
 }
 .section-header--orange {
-    background: rgba(255, 90, 0, 0.08);
-    border: 1px solid rgba(255, 90, 0, 0.2);
+    background: linear-gradient(135deg, rgba(255, 90, 0, 0.12) 0%, rgba(255, 90, 0, 0.04) 100%);
+    border: 1px solid rgba(255, 90, 0, 0.25);
     color: #ff8a3d;
 }
 .section-header--green {
-    background: rgba(34, 197, 94, 0.08);
-    border: 1px solid rgba(34, 197, 94, 0.2);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(34, 197, 94, 0.04) 100%);
+    border: 1px solid rgba(34, 197, 94, 0.25);
     color: #4ade80;
 }
 .section-header--red {
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.04) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.25);
     color: #f87171;
 }
 .section-header--blue {
-    background: rgba(56, 189, 248, 0.08);
-    border: 1px solid rgba(56, 189, 248, 0.2);
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(56, 189, 248, 0.04) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.25);
     color: #7dd3fc;
 }
 .section-header .count {
@@ -227,44 +227,48 @@ body {
    CARD MELHORADO - borda sutil + hover consistente
    ============================================================ */
 .card-green {
-    background: var(--bg-card);
-    border: 1px solid rgba(34, 197, 94, 0.25);
+    background: linear-gradient(145deg, #141816 0%, #111512 100%);
+    border: 1px solid rgba(34, 197, 94, 0.2);
     border-radius: 16px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s;
 }
 .card-green:hover {
     border-color: rgba(34, 197, 94, 0.5);
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.08);
+    box-shadow: 0 4px 24px rgba(34, 197, 94, 0.1);
+    transform: translateY(-1px);
 }
 .card-orange {
-    background: var(--bg-card);
+    background: linear-gradient(145deg, #1a1612 0%, #151310 100%);
     border: 1px solid rgba(255, 90, 0, 0.2);
     border-radius: 16px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s;
 }
 .card-orange:hover {
     border-color: rgba(255, 90, 0, 0.5);
-    box-shadow: 0 0 20px rgba(255, 90, 0, 0.08);
+    box-shadow: 0 4px 24px rgba(255, 90, 0, 0.1);
+    transform: translateY(-1px);
 }
 .card-red {
-    background: var(--bg-card);
+    background: linear-gradient(145deg, #1a1415 0%, #151112 100%);
     border: 1px solid rgba(239, 68, 68, 0.2);
     border-radius: 16px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s;
 }
 .card-red:hover {
     border-color: rgba(239, 68, 68, 0.45);
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.06);
+    box-shadow: 0 4px 24px rgba(239, 68, 68, 0.08);
+    transform: translateY(-1px);
 }
 .card-blue {
-    background: var(--bg-card);
+    background: linear-gradient(145deg, #13181c 0%, #101417 100%);
     border: 1px solid rgba(56, 189, 248, 0.2);
     border-radius: 16px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s;
 }
 .card-blue:hover {
     border-color: rgba(56, 189, 248, 0.45);
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.06);
+    box-shadow: 0 4px 24px rgba(56, 189, 248, 0.08);
+    transform: translateY(-1px);
 }
 .card-green.active {
     border-color: rgba(34, 197, 94, 0.6);

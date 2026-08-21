@@ -94,9 +94,10 @@ function renderLeadsList() {
                     <span class="text-yellow-300 font-semibold">RENDA: ${rendaValor || ' informada'}</span>
                 </div>` : ''}
 
-                ${lead.description && !hasRenda ? `
-                <div class="bg-green-500/6 p-2.5 rounded-lg text-xs text-gray-300 border border-green-500/15 mb-2 line-clamp-1">
-                    ${lead.description}
+                ${lead.description ? `
+                <div class="bg-green-500/8 p-2.5 rounded-lg text-xs text-green-200/80 border border-green-500/20 mb-2 line-clamp-2 flex items-start gap-1.5">
+                    <i class="ph ph-text-align-left text-green-500/50 mt-0.5 shrink-0"></i>
+                    <span>${lead.description}</span>
                 </div>` : ''}
 
                 <div class="flex items-center justify-between mt-1">
@@ -190,15 +191,15 @@ function renderLeadDetailPanel(leadId) {
     const rendaBadge = hasRenda ? `<span class="renda-badge"><i class="ph ph-money"></i> RENDA${rendaValor ? ': ' + rendaValor : ''}</span>` : '';
 
     content.innerHTML = `
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center justify-between mb-5 pb-4 border-b ${isSemSucesso ? 'border-red-500/20' : 'border-green-500/20'}">
             <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                 <i class="ph ${headerIcon}"></i> ${headerTitle}
             </h2>
-            <button onclick="closeLeadDetail()" class="text-[var(--text-muted)] hover:text-white p-1"><i class="ph ph-x text-xl"></i></button>
+            <button onclick="closeLeadDetail()" class="text-[var(--text-muted)] hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"><i class="ph ph-x text-xl"></i></button>
         </div>
 
         <!-- Info do Lead -->
-        <div class="bg-[var(--bg-input)] rounded-xl p-4 mb-4">
+        <div class="bg-green-500/5 border border-green-500/15 rounded-xl p-4 mb-4">
             <div class="flex items-center gap-3 mb-3">
                 <div class="w-12 h-12 rounded-full ${avatarBg} border flex items-center justify-center font-bold text-sm shrink-0">
                     ${initials}
@@ -217,7 +218,7 @@ function renderLeadDetailPanel(leadId) {
             <p class="text-[10px] text-[var(--text-muted)] mb-2 flex items-center gap-1">
                 <i class="ph ph-calendar"></i> Criado em ${createdDate ? formatDateBR(createdDate) : '-'}
             </p>
-            ${lead.description ? `<p class="text-sm text-gray-300 bg-[var(--bg-card)] p-3 rounded-lg border ${isSemSucesso ? 'border-red-500/10' : 'border-green-500/10'}">${lead.description}</p>` : ''}
+            ${lead.description ? `<div class="bg-green-500/8 p-3 rounded-lg border border-green-500/20"><p class="text-xs text-green-400/70 font-medium mb-1"><i class="ph ph-text-align-left"></i> Descrição</p><p class="text-sm text-green-100/80">${lead.description}</p></div>` : ''}
         </div>
 
         <!-- Botões de ação -->
@@ -244,8 +245,8 @@ function renderLeadDetailPanel(leadId) {
         }
 
         <!-- Observações -->
-        <div class="mb-2">
-            <h4 class="text-green-500 font-medium text-sm mb-3 flex items-center gap-2">
+        <div class="bg-green-500/5 border border-green-500/15 rounded-xl p-4 mb-2">
+            <h4 class="text-green-400 font-medium text-sm mb-3 flex items-center gap-2">
                 <i class="ph ph-chat-circle-dots"></i> Observações (${obs.length})
             </h4>
 
