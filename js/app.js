@@ -1103,8 +1103,12 @@ function switchTab(tabId) {
         return;
     }
     // Fechar detalhe do lead ao trocar de aba
-    if (tabId !== 'leads' && tabId !== 'sem-futuro') {
+    if (tabId !== 'leads') {
         activeLeadId = null;
+        const panel = document.getElementById('lead-detail-panel');
+        const overlay = document.getElementById('lead-detail-overlay');
+        if (panel) panel.classList.add('translate-x-full');
+        if (overlay) overlay.classList.add('hidden');
     }
     const tabs = ['todos', 'historico', 'concluidos', 'leads', 'sem-futuro', 'config'];
     tabs.forEach(id => {
@@ -1128,8 +1132,7 @@ function switchTab(tabId) {
     });
     // Re-render leads ao entrar na aba
     if (tabId === 'leads') {
-        if (activeLeadId) renderLeadDetail(activeLeadId);
-        else renderLeadsList();
+        renderLeadsList();
         renderLeadsDashboard();
     }
     if (tabId === 'sem-futuro') {
