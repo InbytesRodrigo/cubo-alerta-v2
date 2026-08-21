@@ -27,6 +27,7 @@ function renderLeadsDashboard() {
 
     const totalLeads = leads.length;
     const ativos = leads.filter(l => l.status === 'active').length;
+    const concluidos = leads.filter(l => l.status === 'completed').length;
     const semSucesso = leads.filter(l => l.status === 'sem_sucesso').length;
     const leadsHoje = leads.filter(l => {
         const d = l.createdAt ? l.createdAt.split('T')[0] : '';
@@ -36,6 +37,7 @@ function renderLeadsDashboard() {
     const el = (id) => document.getElementById(id);
     if (el('lead-stat-total')) el('lead-stat-total').innerText = totalLeads;
     if (el('lead-stat-ativos')) el('lead-stat-ativos').innerText = ativos;
+    if (el('lead-stat-concluidos')) el('lead-stat-concluidos').innerText = concluidos;
     if (el('lead-stat-sem-sucesso')) el('lead-stat-sem-sucesso').innerText = semSucesso;
     if (el('lead-stat-hoje')) el('lead-stat-hoje').innerText = leadsHoje;
     if (el('leads-count-badge')) el('leads-count-badge').innerText = ativos;
@@ -116,8 +118,11 @@ function renderLeadsList() {
                         <button onclick="callLeadAgain('${lead.id}')" class="p-1.5 bg-orange-500/10 border border-orange-500/30 hover:bg-orange-500 hover:border-orange-500 text-orange-400 hover:text-white rounded-lg text-xs transition-all" title="Chamar novamente">
                             <i class="ph ph-bell-ringing"></i>
                         </button>
-                        <button onclick="markLeadAsSemSucesso('${lead.id}')" class="p-1.5 bg-red-500/10 border border-red-500/30 hover:bg-red-500 hover:border-red-500 text-red-400 hover:text-white rounded-lg text-xs transition-all" title="Sem sucesso">
-                            <i class="ph ph-x-circle"></i>
+                        <button onclick="completeLead('${lead.id}')" class="p-1.5 bg-green-500/10 border border-green-500/30 hover:bg-green-500 hover:border-green-500 text-green-400 hover:text-white rounded-lg text-xs transition-all" title="Concluir">
+                            <i class="ph ph-check-circle"></i>
+                        </button>
+                        <button onclick="deleteLead('${lead.id}')" class="p-1.5 bg-red-500/10 border border-red-500/30 hover:bg-red-500 hover:border-red-500 text-red-400 hover:text-white rounded-lg text-xs transition-all" title="Excluir">
+                            <i class="ph ph-trash"></i>
                         </button>
                     </div>
                 </div>
@@ -265,14 +270,23 @@ function renderLeadDetailPanel(leadId) {
                 </button>`
             }
         </div>
-        ${isSemSucesso
-            ? `<button onclick="callLeadAgain('${lead.id}')" class="w-full py-2 bg-orange-500/10 border border-orange-500/30 hover:bg-orange-500 hover:border-orange-500 text-orange-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5 mb-5">
-                <i class="ph ph-bell-ringing"></i> Chamar Novamente
-            </button>`
-            : `<button onclick="markLeadAsSemSucesso('${lead.id}')" class="w-full py-2 bg-red-500/10 border border-red-500/30 hover:bg-red-500 hover:border-red-500 text-red-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5 mb-5">
-                <i class="ph ph-x-circle"></i> Marcar como Sem Sucesso
-            </button>`
-        }
+        ${!isSemSucesso ? `
+        <div class="grid grid-cols-2 gap-2 mb-3">
+            <button onclick="completeLead('${lead.id}')" class="py-2.5 bg-green-500/10 border border-green-500/40 hover:bg-green-500 hover:border-green-500 text-green-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5">
+                <i class="ph ph-check-circle"></i> Concluir
+            </button>
+            <button onclick="markLeadAsSemSucesso('${lead.id}')" class="py-2.5 bg-red-500/10 border border-red-500/30 hover:bg-red-500 hover:border-red-500 text-red-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5">
+                <i class="ph ph-x-circle"></i> Sem Sucesso
+            </button>
+        </div>
+        <button onclick="deleteLead('${lead.id}')" class="w-full py-2 bg-[var(--bg-input)] border border-[var(--border-color)] hover:border-red-500 text-[var(--text-muted)] hover:text-red-400 rounded-xl text-xs font-medium transition-all flex justify-center items-center gap-1.5 mb-5">
+            <i class="ph ph-trash"></i> Excluir Lead
+        </button>
+        ` : `
+        <button onclick="callLeadAgain('${lead.id}')" class="w-full py-2 bg-orange-500/10 border border-orange-500/30 hover:bg-orange-500 hover:border-orange-500 text-orange-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5 mb-5">
+            <i class="ph ph-bell-ringing"></i> Chamar Novamente
+        </button>
+        `}
 
         <!-- Observações -->
         <div class="bg-green-500/5 border border-green-500/15 rounded-xl p-4 mb-2">
@@ -556,6 +570,46 @@ function markLeadAsSemSucesso(leadId) {
     if (activeLeadId === leadId) closeLeadDetail();
 
     showToast(`"${lead.name}" marcado como sem sucesso.`, 'info');
+    renderLeadsDashboard();
+    renderLeadsList();
+    renderSemFuturo();
+}
+
+// --- Excluir Lead (remove totalmente) ---
+function deleteLead(leadId) {
+    const lead = leads.find(l => l.id === leadId);
+    if (!lead) return;
+    if (!confirm(`Excluir "${lead.name}" permanentemente? Esta ação não pode ser desfeita.`)) return;
+
+    leads = leads.filter(l => l.id !== leadId);
+    saveLeadsData();
+
+    // Remover observações do lead
+    delete leadObservations[leadId];
+    saveLeadObsData();
+
+    if (activeLeadId === leadId) closeLeadDetail();
+
+    showToast(`"${lead.name}" excluído permanentemente.`, 'success');
+    renderLeadsDashboard();
+    renderLeadsList();
+    renderSemFuturo();
+}
+
+// --- Concluir Lead ---
+function completeLead(leadId) {
+    const lead = leads.find(l => l.id === leadId);
+    if (!lead) return;
+    if (!confirm(`Concluir o lead "${lead.name}"?`)) return;
+
+    lead.status = 'completed';
+    lead.updatedAt = new Date().toISOString();
+    lead.completedAt = new Date().toISOString();
+    saveLeadsData();
+
+    if (activeLeadId === leadId) closeLeadDetail();
+
+    showToast(`"${lead.name}" concluído com sucesso!`, 'success');
     renderLeadsDashboard();
     renderLeadsList();
     renderSemFuturo();
