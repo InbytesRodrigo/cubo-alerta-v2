@@ -236,16 +236,19 @@ function renderLeadDetailPanel(leadId) {
         </div>
 
         <!-- Botões de ação -->
-        <div class="grid grid-cols-2 gap-2 mb-3">
+        <div class="grid grid-cols-3 gap-2 mb-3">
             <a href="https://wa.me/55${(lead.phone || '').replace(/\D/g, '')}" target="_blank" class="py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5">
                 <i class="ph-bold ph-whatsapp-logo"></i> WhatsApp
             </a>
+            <button onclick="openEditLeadModal('${lead.id}')" class="py-2.5 bg-[var(--bg-input)] border border-[var(--border-color)] hover:border-[var(--brand-orange)] text-[var(--text-muted)] hover:text-[var(--brand-orange)] rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5">
+                <i class="ph ph-pencil-simple"></i> Editar
+            </button>
             ${isSemSucesso
                 ? `<button onclick="reactivateLead('${lead.id}')" class="py-2.5 bg-green-500/10 border border-green-500/40 hover:bg-green-500 hover:border-green-500 text-green-500 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5">
-                    <i class="ph ph-arrow-counter-clockwise"></i> Reativar
+                    <i class="ph ph-arrow-counter-clockwise"></i>
                 </button>`
                 : `<button onclick="callLeadAgain('${lead.id}')" class="py-2.5 bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500 hover:border-orange-500 text-orange-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1.5">
-                    <i class="ph ph-bell-ringing"></i> Chamar Novamente
+                    <i class="ph ph-bell-ringing"></i>
                 </button>`
             }
         </div>
@@ -400,6 +403,27 @@ function handleCreateLead(e) {
 
     if (!name) { showToast('Digite o nome do lead.', 'error'); return; }
 
+    // MODO EDIÇÃO
+    if (editingLeadId) {
+        const lead = leads.find(l => l.id === editingLeadId);
+        if (lead) {
+            lead.name = name;
+            lead.phone = phone;
+            lead.description = description;
+            lead.renda = renda;
+            lead.updatedAt = new Date().toISOString();
+            saveLeadsData();
+            cancelEditLead();
+            showToast('Lead atualizado com sucesso!', 'success');
+            renderLeadsDashboard();
+            renderLeadsList();
+            renderSemFuturo();
+            if (activeLeadId === editingLeadId) renderLeadDetailPanel(activeLeadId);
+            return;
+        }
+    }
+
+    // MODO CRIAÇÃO
     const newLead = {
         id: generateId(),
         name, phone, description, renda,
@@ -427,6 +451,37 @@ function openCreateLeadModal() {
 function closeCreateLeadModal() {
     const modal = document.getElementById('create-lead-modal');
     if (modal) modal.classList.add('hidden');
+}
+
+// --- Editar Lead ---
+let editingLeadId = null;
+
+function openEditLeadModal(leadId) {
+    const lead = leads.find(l => l.id === leadId);
+    if (!lead) return;
+    editingLeadId = leadId;
+
+    document.getElementById('lead-name').value = lead.name || '';
+    document.getElementById('lead-phone').value = lead.phone || '';
+    document.getElementById('lead-desc').value = lead.description || '';
+    document.getElementById('lead-renda').value = lead.renda || '';
+
+    document.getElementById('create-lead-title').innerText = 'Editar Lead';
+    document.getElementById('create-lead-submit').innerHTML = '<i class="ph ph-floppy-disk"></i> Salvar Alterações';
+    document.getElementById('create-lead-cancel').classList.remove('hidden');
+
+    const modal = document.getElementById('create-lead-modal');
+    if (modal) modal.classList.remove('hidden');
+    setTimeout(() => { const el = document.getElementById('lead-name'); if (el) el.focus(); }, 100);
+}
+
+function cancelEditLead() {
+    editingLeadId = null;
+    document.getElementById('create-lead-title').innerText = 'Novo Lead WhatsApp';
+    document.getElementById('create-lead-submit').innerHTML = '<i class="ph ph-plus-circle"></i> Criar Lead';
+    document.getElementById('create-lead-cancel').classList.add('hidden');
+    document.getElementById('create-lead-form').reset();
+    closeCreateLeadModal();
 }
 
 // ============================================================

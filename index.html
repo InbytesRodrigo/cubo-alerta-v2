@@ -323,16 +323,17 @@
                 </div>
             </div>
 
-            <!-- MODAL: Criar Lead -->
+            <!-- MODAL: Criar/Editar Lead -->
             <div id="create-lead-modal" class="fixed inset-0 bg-black/80 glass-panel hidden z-[99997] flex items-center justify-center p-4">
                 <div class="bg-[var(--bg-card)] border border-green-500/30 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
-                    <button onclick="closeCreateLeadModal()" class="absolute top-4 right-4 text-[var(--text-muted)] hover:text-white"><i class="ph ph-x text-xl"></i></button>
+                    <button onclick="editingLeadId ? cancelEditLead() : closeCreateLeadModal()" class="absolute top-4 right-4 text-[var(--text-muted)] hover:text-white"><i class="ph ph-x text-xl"></i></button>
                     <div class="flex items-center gap-3 mb-5">
                         <div class="w-11 h-11 rounded-full bg-green-500/10 text-green-500 border border-green-500/30 flex items-center justify-center shrink-0"><i class="ph-fill ph-whatsapp-logo text-xl"></i></div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-white">Novo Lead WhatsApp</h3>
+                        <div class="flex-1">
+                            <h3 id="create-lead-title" class="text-lg font-semibold text-white">Novo Lead WhatsApp</h3>
                             <p class="text-xs text-[var(--text-muted)]">Preencha os dados do lead</p>
                         </div>
+                        <button id="create-lead-cancel" onclick="cancelEditLead()" class="hidden text-xs text-[var(--text-muted)] hover:text-white px-3 py-1.5 rounded-lg border border-[var(--border-color)] transition-colors">Cancelar</button>
                     </div>
                     <form id="create-lead-form" onsubmit="handleCreateLead(event)" class="space-y-4">
                         <div>
@@ -360,7 +361,7 @@
                                 <input type="text" id="lead-renda" placeholder="Ex: R$ 5.000, 3500, R$ 8.000/mês" class="w-full bg-[var(--bg-input)] border border-yellow-500/20 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-yellow-500 text-white placeholder-[var(--border-color)] transition-colors">
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-green-500/20">
+                        <button id="create-lead-submit" type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-green-500/20">
                             <i class="ph ph-plus-circle text-lg"></i> Criar Lead
                         </button>
                     </form>
