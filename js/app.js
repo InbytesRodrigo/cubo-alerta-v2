@@ -349,25 +349,28 @@ function markAsNotWorked(id) {
         // Temas de cor dos cards por seção: atrasado (vermelho), agora (laranja), próximo (azul)
         const CARD_THEMES = {
             late: {
-                border: 'border-red-500/50 hover:border-red-500',
+                border: 'border-red-500/60 hover:border-red-500',
                 leftBar: 'border-l-red-500',
-                avatar: 'bg-red-500/10 text-red-500 border-red-500/20',
-                time: 'text-red-500',
-                boxBorder: 'border-red-500/25'
+                avatar: 'bg-red-500/15 text-red-400 border-red-500/30',
+                time: 'text-red-400',
+                boxBg: 'bg-red-500/8',
+                boxBorder: 'border-red-500/30'
             },
             agora: {
-                border: 'border-[var(--brand-orange)]/40 hover:border-[var(--brand-orange)]',
-                leftBar: 'border-l-[var(--brand-orange)]',
-                avatar: 'bg-[var(--brand-orange)]/10 text-[var(--brand-orange)] border-[var(--brand-orange)]/30',
-                time: 'text-[var(--brand-orange)]',
-                boxBorder: 'border-[var(--brand-orange)]/25'
+                border: 'border-orange-500/50 hover:border-orange-400',
+                leftBar: 'border-l-orange-500',
+                avatar: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+                time: 'text-orange-400',
+                boxBg: 'bg-orange-500/8',
+                boxBorder: 'border-orange-500/30'
             },
             proximo: {
-                border: 'border-sky-500/40 hover:border-sky-400',
-                leftBar: 'border-l-sky-500',
-                avatar: 'bg-sky-500/10 text-sky-400 border-sky-500/30',
-                time: 'text-sky-400',
-                boxBorder: 'border-sky-500/25'
+                border: 'border-green-500/40 hover:border-green-400',
+                leftBar: 'border-l-green-500',
+                avatar: 'bg-green-500/10 text-green-400 border-green-500/25',
+                time: 'text-green-400',
+                boxBg: 'bg-green-500/6',
+                boxBorder: 'border-green-500/25'
             }
         };
 
@@ -407,8 +410,8 @@ function markAsNotWorked(id) {
                         </div>
                     </div>
                     
-                    <div class="bg-[var(--bg-input)] p-3 rounded-xl mb-4 text-sm text-gray-300 line-clamp-2 border ${theme.boxBorder} flex items-start gap-2 h-14">
-                        <i class="ph ph-text-align-left text-[var(--text-muted)] mt-0.5"></i> 
+                    <div class="${theme.boxBg} p-3 rounded-xl mb-4 text-sm text-gray-300 line-clamp-2 border ${theme.boxBorder} flex items-start gap-2 h-14">
+                        <i class="ph ph-text-align-left ${theme.time} mt-0.5 opacity-50"></i> 
                         <span class="flex-1" title="${alert.subject}">${alert.subject}</span>
                     </div>
 
