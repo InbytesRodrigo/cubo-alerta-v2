@@ -1165,11 +1165,6 @@ function logoutAdmin() {
 
 // --- Utils e UI ---
 function switchTab(tabId) {
-    // A aba Histórico é do Admin — exige senha
-    if (tabId === 'historico' && !isAdminAuthorized()) {
-        openAdminLock();
-        return;
-    }
     // Fechar detalhe do lead ao trocar de aba
     if (tabId !== 'leads') {
         activeLeadId = null;
