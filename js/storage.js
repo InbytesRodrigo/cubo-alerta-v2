@@ -25,7 +25,9 @@ const Storage = (() => {
         avatar: 'alerts_avatar',      // foto de perfil (base64)
         sound: 'alerts_sound',        // som do alerta ('call' | 'beep' | 'notification' | 'custom' | 'none')
         soundFile: 'alerts_sound_file', // arquivo de som personalizado (base64 data URL)
-        pending: 'alerts_sync_pending'  // fila durável de alterações ainda não sincronizadas
+        pending: 'alerts_sync_pending', // fila durável de alterações ainda não sincronizadas
+        leads: 'leads_data',          // lista de leads WhatsApp
+        leadObs: 'lead_obs_data'      // observações dos leads
     };
 
     /* ---------- Supabase (PostgREST via fetch, sem dependências) ---------- */
@@ -363,6 +365,145 @@ const Storage = (() => {
         if (usingDatabase()) enqueueSetting('avatar', JSON.stringify(dataUrl));
     }
 
+    /* ---------- WhatsApp Leads ---------- */
+    function leadToRow(l) {
+        return {
+            id: l.id,
+            name: l.name,
+            phone: l.phone || '',
+            description: l.description || '',
+            status: l.status || 'active',
+            created_at: l.createdAt || new Date().toISOString(),
+            updated_at: l.updatedAt || new Date().toISOString()
+        };
+    }
+
+    function rowToLead(r) {
+        return {
+            id: r.id,
+            name: r.name,
+            phone: r.phone || '',
+            description: r.description || '',
+            status: r.status || 'active',
+            createdAt: r.created_at || '',
+            updatedAt: r.updated_at || ''
+        };
+    }
+
+    function leadObsToRow(o) {
+        return {
+            id: o.id,
+            lead_id: o.leadId,
+            text: o.text,
+            created_at: o.createdAt || new Date().toISOString()
+        };
+    }
+
+    function rowToLeadObs(r) {
+        return {
+            id: r.id,
+            leadId: r.lead_id,
+            text: r.text,
+            createdAt: r.created_at || ''
+        };
+    }
+
+    async function getLeads() {
+        const local = parseJson(localStorage.getItem(KEYS.leads), null);
+        if (usingDatabase()) {
+            try {
+                const res = await fetch(`${BASE}/leads?select=*&order=created_at.desc`, { headers: dbHeaders() });
+                if (res.ok) {
+                    const rows = await res.json();
+                    if (Array.isArray(rows)) {
+                        const loaded = rows.map(rowToLead);
+                        localStorage.setItem(KEYS.leads, JSON.stringify(loaded));
+                        return loaded;
+                    }
+                }
+            } catch (err) {
+                console.warn('Supabase (leads) indisponível:', err && err.message ? err.message : err);
+            }
+        }
+        return local || [];
+    }
+
+    function saveLeads(leads) {
+        localStorage.setItem(KEYS.leads, JSON.stringify(leads));
+        if (usingDatabase()) {
+            const rows = leads.map(leadToRow);
+            fetch(`${BASE}/leads`, {
+                method: 'POST',
+                headers: dbHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+                body: JSON.stringify(rows)
+            }).catch(err => console.warn('Supabase (saveLeads):', err));
+        }
+    }
+
+    async function getLeadObservations(leadId) {
+        const local = parseJson(localStorage.getItem(KEYS.leadObs), []);
+        const filtered = local.filter(o => o.leadId === leadId);
+        if (usingDatabase()) {
+            try {
+                const res = await fetch(`${BASE}/lead_observations?select=*&lead_id=eq.${leadId}&order=created_at.asc`, { headers: dbHeaders() });
+                if (res.ok) {
+                    const rows = await res.json();
+                    if (Array.isArray(rows)) {
+                        return rows.map(rowToLeadObs);
+                    }
+                }
+            } catch (err) {
+                console.warn('Supabase (leadObs) indisponível:', err && err.message ? err.message : err);
+            }
+        }
+        return filtered;
+    }
+
+    async function getAllLeadObservations() {
+        const local = parseJson(localStorage.getItem(KEYS.leadObs), []);
+        if (usingDatabase()) {
+            try {
+                const res = await fetch(`${BASE}/lead_observations?select=*&order=created_at.desc`, { headers: dbHeaders() });
+                if (res.ok) {
+                    const rows = await res.json();
+                    if (Array.isArray(rows)) {
+                        const loaded = rows.map(rowToLeadObs);
+                        localStorage.setItem(KEYS.leadObs, JSON.stringify(loaded));
+                        return loaded;
+                    }
+                }
+            } catch (err) {
+                console.warn('Supabase (allLeadObs) indisponível:', err && err.message ? err.message : err);
+            }
+        }
+        return local;
+    }
+
+    function saveLeadObservation(obs) {
+        const all = parseJson(localStorage.getItem(KEYS.leadObs), []);
+        all.push(obs);
+        localStorage.setItem(KEYS.leadObs, JSON.stringify(all));
+        if (usingDatabase()) {
+            fetch(`${BASE}/lead_observations`, {
+                method: 'POST',
+                headers: dbHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+                body: JSON.stringify(leadObsToRow(obs))
+            }).catch(err => console.warn('Supabase (saveLeadObs):', err));
+        }
+    }
+
+    function deleteLeadObservation(obsId) {
+        let all = parseJson(localStorage.getItem(KEYS.leadObs), []);
+        all = all.filter(o => o.id !== obsId);
+        localStorage.setItem(KEYS.leadObs, JSON.stringify(all));
+        if (usingDatabase()) {
+            fetch(`${BASE}/lead_observations?id=eq.${obsId}`, {
+                method: 'DELETE',
+                headers: dbHeaders()
+            }).catch(err => console.warn('Supabase (deleteLeadObs):', err));
+        }
+    }
+
     /* ---------- Utilitário de emergência ---------- */
     async function clearAll() {
         localStorage.clear();
@@ -402,6 +543,12 @@ const Storage = (() => {
         saveSoundFile,
         getAvatar,
         saveAvatar,
+        getLeads,
+        saveLeads,
+        getLeadObservations,
+        getAllLeadObservations,
+        saveLeadObservation,
+        deleteLeadObservation,
         clearAll,
         usingDatabase,
         statusInfo

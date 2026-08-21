@@ -26,6 +26,8 @@ let activePushAlertId = null;
 let isPushActive = false;
 let editingAlertId = null;
 
+// WhatsApp Leads (definidos em leads.js)
+
 // Audio
 let audioCtx = null;
 let soundTimer = null;
@@ -38,18 +40,27 @@ function generateId() {
 async function initApp() {
     // Carrega os dados (Supabase; se não configurado, usa localStorage)
     try {
-        const [loadedAlerts, loadedSnoozes, loadedAvatar, loadedSound, loadedSoundFile] = await Promise.all([
+        const [loadedAlerts, loadedSnoozes, loadedAvatar, loadedSound, loadedSoundFile, loadedLeads, loadedLeadObs] = await Promise.all([
             Storage.getAlerts(),
             Storage.getSnoozeOptions(),
             Storage.getAvatar(),
             Storage.getSoundOption(),
-            Storage.getSoundFile()
+            Storage.getSoundFile(),
+            Storage.getLeads(),
+            Storage.getAllLeadObservations()
         ]);
         alerts = loadedAlerts || [];
         snoozeOptions = loadedSnoozes || [15, 30, 60, 1440];
         avatarData = loadedAvatar || null;
         soundOption = loadedSound || 'call';
         soundFile = loadedSoundFile || null;
+        leads = loadedLeads || [];
+        // Index observations by leadId
+        leadObservations = {};
+        (loadedLeadObs || []).forEach(obs => {
+            if (!leadObservations[obs.leadId]) leadObservations[obs.leadId] = [];
+            leadObservations[obs.leadId].push(obs);
+        });
     } catch (err) {
         console.warn('Falha ao carregar dados:', err);
     }
@@ -58,6 +69,9 @@ async function initApp() {
     renderSnoozeSettings();
     renderSoundSettings();
     renderDashboard();
+    renderLeadsDashboard();
+    renderLeadsList();
+    renderSemFuturo();
     setDefaultDate();
     renderDbStatus();
     decodeCustomSound(soundFile);
@@ -1088,20 +1102,39 @@ function switchTab(tabId) {
         openAdminLock();
         return;
     }
-    const tabs = ['todos', 'historico', 'concluidos', 'config'];
+    // Fechar detalhe do lead ao trocar de aba
+    if (tabId !== 'leads' && tabId !== 'sem-futuro') {
+        activeLeadId = null;
+    }
+    const tabs = ['todos', 'historico', 'concluidos', 'leads', 'sem-futuro', 'config'];
     tabs.forEach(id => {
         const btn = document.getElementById(`tab-${id}`);
         const view = document.getElementById(`view-${id}`);
+        if (!btn || !view) return;
+        // Cores especiais por aba
+        const isWhatsApp = id === 'leads';
+        const isSemFuturo = id === 'sem-futuro';
+        const activeColor = isWhatsApp ? 'border-green-500' : isSemFuturo ? 'border-red-500' : 'border-[var(--brand-orange)]';
+        const activeTextColor = isWhatsApp ? 'text-green-500' : isSemFuturo ? 'text-red-400' : 'text-white';
         if(id === tabId) {
-            btn.classList.add('border-[var(--brand-orange)]', 'text-white');
+            btn.classList.add(activeColor, activeTextColor);
             btn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
             view.classList.remove('hidden');
         } else {
-            btn.classList.remove('border-[var(--brand-orange)]', 'text-white');
+            btn.classList.remove(activeColor, activeTextColor);
             btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
             view.classList.add('hidden');
         }
     });
+    // Re-render leads ao entrar na aba
+    if (tabId === 'leads') {
+        if (activeLeadId) renderLeadDetail(activeLeadId);
+        else renderLeadsList();
+        renderLeadsDashboard();
+    }
+    if (tabId === 'sem-futuro') {
+        renderSemFuturo();
+    }
 }
 
 function filterAlerts() {

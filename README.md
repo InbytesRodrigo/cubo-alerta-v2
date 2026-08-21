@@ -22,6 +22,7 @@ CUBO ALERTA/
 ├── js/
 │   ├── config.js           → 🔑 URL + chave anon do Supabase (colar aqui)
 │   ├── storage.js          → 🗄️ CAMADA DE DADOS (Supabase + fallback localStorage)
+│   ├── leads.js            → 📋 Sistema de WhatsApp Leads (CRUD, observações)
 │   └── app.js              → Toda a lógica do aplicativo
 ├── supabase/
 │   └── schema.sql          → 🗄️ SQL para criar as tabelas (rodar no Supabase)
@@ -31,6 +32,8 @@ CUBO ALERTA/
 │   └── icons/               → Ícones do app (192, 512 e maskable)
 ├── scripts/
 │   └── generate-icons.js    → Gera os ícones PNG (sem dependências)
+├── firebase.json            → Configuração do Firebase Hosting
+├── .firebaserc              → Projeto Firebase
 ├── netlify.toml            → Configuração de deploy no Netlify
 ├── package.json
 └── README.md
@@ -115,5 +118,12 @@ republica sozinho.
 - ✅ **Relatório em lista** com filtros por período (Hoje / Semana / Mês / Todos) e exportar CSV
 - ✅ **Banner de instalação do PWA** no topo ("Baixar app")
 - ✅ Salvamento em tempo real: dados vão para o Supabase com fila de pendências, retry automático e envio ao fechar a aba (nada se perde)
-- ✅ Busca, abas (Todos / Histórico / Concluídos / Configurações)
+- ✅ Busca, abas (Todos / Histórico / Concluídos / WhatsApp LEAD / Sem Futuro / Configurações)
 - ✅ Perfil com upload de foto (avatar)
+- ✅ **WhatsApp LEAD** — Aba dedicada com dashboard (total, ativos, sem sucesso, hoje)
+- ✅ **Criar Lead** — Modal com nome, WhatsApp e descrição
+- ✅ **Observações múltiplas** por lead (adicionar/excluir)
+- ✅ **Chamar novamente** — Gera alerta automático a partir do lead
+- ✅ **Sem Sucesso** — Move lead para aba "Sem Futuro"
+- ✅ **Reativar** lead do Sem Futuro de volta para ativos
+- ✅ **Detalhe do lead** — Visualização completa com WhatsApp direto

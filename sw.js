@@ -12,7 +12,7 @@
    CACHE_VERSION abaixo e recarregue a página 2x.
    ============================================================ */
 
-const CACHE_VERSION = 'v10';
+const CACHE_VERSION = 'v11';
 const CACHE_NAME = `grupo-aureos-alerta-${CACHE_VERSION}`;
 
 // Arquivos fixos do "app shell" (cacheados na instalação)
@@ -22,6 +22,7 @@ const APP_SHELL = [
     './css/app.css?v=10',
     './js/config.js',
     './js/storage.js',
+    './js/leads.js',
     './js/app.js',
     './pwa/manifest.webmanifest',
     './pwa/icons/icon-192.png',
