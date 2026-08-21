@@ -140,6 +140,20 @@ function closeLeadDetail() {
     renderLeadsList();
 }
 
+function editLeadRenda(leadId) {
+    const lead = leads.find(l => l.id === leadId);
+    if (!lead) return;
+    const novaRenda = prompt('Digite a renda do lead:', lead.renda || '');
+    if (novaRenda === null) return;
+    lead.renda = novaRenda.trim();
+    lead.updatedAt = new Date().toISOString();
+    saveLeadsData();
+    renderLeadDetailPanel(leadId);
+    renderLeadsList();
+    renderLeadsDashboard();
+    showToast(lead.renda ? 'Renda atualizada!' : 'Renda removida.', 'success');
+}
+
 function renderLeadDetailPanel(leadId) {
     const content = document.getElementById('lead-detail-content');
     if (!content) return;
@@ -217,7 +231,7 @@ function renderLeadDetailPanel(leadId) {
             <p class="text-[10px] text-[var(--text-muted)] mb-2 flex items-center gap-1">
                 <i class="ph ph-calendar"></i> Criado em ${createdDate ? formatDateBR(createdDate) : '-'}
             </p>
-            ${lead.renda ? `<div class="bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/25 mb-2 flex items-center gap-2"><i class="ph ph-money text-yellow-400"></i><div><p class="text-[10px] text-yellow-400/70 font-medium">Renda</p><p class="text-sm text-yellow-300 font-semibold">${lead.renda}</p></div></div>` : ''}
+            ${lead.renda ? `<div class="bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/25 mb-2 flex items-center gap-2 cursor-pointer hover:bg-yellow-500/15 transition-colors" onclick="editLeadRenda('${lead.id}')"><i class="ph ph-money text-yellow-400"></i><div class="flex-1"><p class="text-[10px] text-yellow-400/70 font-medium">Renda</p><p class="text-sm text-yellow-300 font-semibold">${lead.renda}</p></div><i class="ph ph-pencil-simple text-yellow-400/50 text-xs"></i></div>` : `<div class="bg-yellow-500/5 p-3 rounded-lg border border-dashed border-yellow-500/20 mb-2 flex items-center gap-2 cursor-pointer hover:bg-yellow-500/10 transition-colors" onclick="editLeadRenda('${lead.id}')"><i class="ph ph-money text-yellow-400/50"></i><span class="text-xs text-yellow-400/60">Adicionar renda</span><i class="ph ph-plus text-yellow-400/40 text-xs ml-auto"></i></div>`}
             ${lead.description ? `<div class="bg-green-500/8 p-3 rounded-lg border border-green-500/20"><p class="text-xs text-green-400/70 font-medium mb-1"><i class="ph ph-text-align-left"></i> Descrição</p><p class="text-sm text-green-100/80">${lead.description}</p></div>` : ''}
         </div>
 
@@ -288,9 +302,24 @@ function callLeadAgain(leadId) {
     document.getElementById('callagain-date').value = `${yyyy}-${mm}-${dd}`;
     document.getElementById('callagain-time').value = `${hh}:${min}`;
 
+    // Atualizar preview da data
+    updateCallAgainPreview();
+
     // Abrir modal
     const modal = document.getElementById('callagain-modal');
     if (modal) modal.classList.remove('hidden');
+}
+
+function updateCallAgainPreview() {
+    const dateEl = document.getElementById('callagain-date');
+    const timeEl = document.getElementById('callagain-time');
+    const dateDisplay = document.getElementById('callagain-date-display');
+    const timeDisplay = document.getElementById('callagain-time-display');
+    if (!dateEl || !timeEl || !dateDisplay || !timeDisplay) return;
+    const dateVal = dateEl.value;
+    const timeVal = timeEl.value;
+    dateDisplay.textContent = dateVal ? formatDateBR(dateVal) : '-';
+    timeDisplay.textContent = timeVal || '-';
 }
 
 function closeCallAgainModal() {
@@ -346,6 +375,17 @@ function setCallAgainQuick(minutes) {
     const min = String(now.getMinutes()).padStart(2, '0');
     document.getElementById('callagain-date').value = `${yyyy}-${mm}-${dd}`;
     document.getElementById('callagain-time').value = `${hh}:${min}`;
+    updateCallAgainPreview();
+}
+
+// Atualizar preview quando data/hora mudam
+if (typeof window !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', () => {
+        const dateEl = document.getElementById('callagain-date');
+        const timeEl = document.getElementById('callagain-time');
+        if (dateEl) dateEl.addEventListener('change', updateCallAgainPreview);
+        if (timeEl) timeEl.addEventListener('change', updateCallAgainPreview);
+    });
 }
 
 // ============================================================
