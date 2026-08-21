@@ -160,17 +160,21 @@
                 <div class="space-y-8">
                     <!-- Atrasados -->
                     <div id="section-atrasados" class="hidden">
-                        <h2 class="text-red-500 font-medium mb-4 flex items-center gap-2">
-                            Atrasado <span class="bg-gradient-to-r from-red-500/30 to-red-500/5 border border-red-500/30 text-red-500 text-xs py-0.5 px-2 rounded-full" id="count-atrasados">0</span>
-                        </h2>
+                        <div class="section-header section-header--red">
+                            <i class="ph ph-warning-circle"></i>
+                            <span>Atrasados</span>
+                            <span class="count" id="count-atrasados">0</span>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="list-atrasados"></div>
                     </div>
-                    
+
                     <!-- Agora (Pendentes) -->
                     <div id="section-agora">
-                        <h2 class="text-[var(--brand-orange)] font-medium mb-4 flex items-center gap-2">
-                            Agora <span class="bg-gradient-to-r from-[var(--brand-orange)]/30 to-[var(--brand-orange)]/5 border border-[var(--brand-orange)]/30 text-[var(--brand-orange)] text-xs py-0.5 px-2 rounded-full" id="count-agora">0</span>
-                        </h2>
+                        <div class="section-header section-header--orange">
+                            <i class="ph ph-bell-ringing"></i>
+                            <span>Agora</span>
+                            <span class="count" id="count-agora">0</span>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="list-agora"></div>
                         <div id="empty-agora" class="text-[var(--text-muted)] text-sm py-12 text-center bg-[var(--bg-card)] border border-[var(--border-color)] border-dashed rounded-2xl hidden">
                             <i class="ph ph-coffee text-3xl mb-2 text-gray-600"></i><br>
@@ -180,9 +184,11 @@
 
                     <!-- Próximos -->
                     <div id="section-proximo">
-                        <h2 class="text-sky-400 font-medium mb-4 flex items-center gap-2">
-                            Próximo <span class="bg-gradient-to-r from-sky-400/30 to-sky-400/5 border border-sky-400/30 text-sky-400 text-xs py-0.5 px-2 rounded-full" id="count-proximo">0</span>
-                        </h2>
+                        <div class="section-header section-header--blue">
+                            <i class="ph ph-clock"></i>
+                            <span>Próximos</span>
+                            <span class="count" id="count-proximo">0</span>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="list-proximo"></div>
                     </div>
                 </div>
@@ -279,9 +285,11 @@
 
                 <!-- Botão criar lead -->
                 <div class="flex items-center justify-between">
-                    <h2 class="text-green-500 font-medium flex items-center gap-2">
-                        <i class="ph ph-whatsapp-logo"></i> Leads do WhatsApp
-                    </h2>
+                    <div class="section-header section-header--green">
+                        <i class="ph ph-whatsapp-logo"></i>
+                        <span>Leads do WhatsApp</span>
+                        <span class="count" id="leads-section-count">0</span>
+                    </div>
                     <button onclick="openCreateLeadModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors shadow-lg shadow-green-500/20">
                         <i class="ph ph-plus-circle"></i> Novo Lead
                     </button>
@@ -299,12 +307,12 @@
 
             <!-- VIEW: SEM FUTURO -->
             <div id="view-sem-futuro" class="hidden space-y-6 max-w-5xl mx-auto xl:mx-0 w-full">
-                <div>
-                    <h2 class="text-red-400 font-medium flex items-center gap-2 mb-1">
-                        <i class="ph ph-prohibit"></i> Sem Futuro
-                    </h2>
-                    <p class="text-sm text-[var(--text-muted)]">Leads marcados como "Sem Sucesso". Você pode reativá-los a qualquer momento.</p>
+                <div class="section-header section-header--red">
+                    <i class="ph ph-prohibit"></i>
+                    <span>Sem Futuro</span>
+                    <span class="count" id="sem-futuro-section-count">0</span>
                 </div>
+                <p class="text-xs text-[var(--text-muted)] -mt-3 mb-2">Leads marcados como "Sem Sucesso". Clique para ver detalhes ou reativar.</p>
 
                 <div id="sem-futuro-list" class="space-y-3">
                     <!-- Populated by JS -->

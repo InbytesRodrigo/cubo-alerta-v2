@@ -131,3 +131,146 @@ body {
 .report-list::-webkit-scrollbar { width: 6px; }
 .report-list::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
 .report-list { scrollbar-width: thin; scrollbar-color: #3f3f46 transparent; }
+
+/* ============================================================
+   DATA BADGES - destaque visual nas datas
+   ============================================================ */
+.date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.date-badge--orange {
+    background: rgba(255, 90, 0, 0.12);
+    border: 1px solid rgba(255, 90, 0, 0.3);
+    color: #ff8a3d;
+}
+.date-badge--green {
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+}
+.date-badge--red {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+.date-badge--blue {
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #7dd3fc;
+}
+
+/* ============================================================
+   SEÇÃO COLORIDA - separação visual entre tipos
+   ============================================================ */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+.section-header--orange {
+    background: rgba(255, 90, 0, 0.08);
+    border: 1px solid rgba(255, 90, 0, 0.2);
+    color: #ff8a3d;
+}
+.section-header--green {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+.section-header--red {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+.section-header--blue {
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    color: #7dd3fc;
+}
+.section-header .count {
+    font-size: 11px;
+    padding: 1px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+}
+.section-header--orange .count {
+    background: rgba(255, 90, 0, 0.2);
+    color: #ff8a3d;
+}
+.section-header--green .count {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+.section-header--red .count {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+.section-header--blue .count {
+    background: rgba(56, 189, 248, 0.2);
+    color: #7dd3fc;
+}
+
+/* ============================================================
+   CARD MELHORADO - borda sutil + hover consistente
+   ============================================================ */
+.card-green {
+    background: var(--bg-card);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.card-green:hover {
+    border-color: rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.08);
+}
+.card-orange {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 90, 0, 0.2);
+    border-radius: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.card-orange:hover {
+    border-color: rgba(255, 90, 0, 0.5);
+    box-shadow: 0 0 20px rgba(255, 90, 0, 0.08);
+}
+.card-red {
+    background: var(--bg-card);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.card-red:hover {
+    border-color: rgba(239, 68, 68, 0.45);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.06);
+}
+.card-blue {
+    background: var(--bg-card);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.card-blue:hover {
+    border-color: rgba(56, 189, 248, 0.45);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.06);
+}
+.card-green.active {
+    border-color: rgba(34, 197, 94, 0.6);
+    box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3), 0 0 20px rgba(34, 197, 94, 0.1);
+}
+.card-red.active {
+    border-color: rgba(239, 68, 68, 0.6);
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.3), 0 0 20px rgba(239, 68, 68, 0.08);
+}

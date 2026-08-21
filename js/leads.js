@@ -39,7 +39,9 @@ function renderLeadsDashboard() {
     if (el('lead-stat-sem-sucesso')) el('lead-stat-sem-sucesso').innerText = semSucesso;
     if (el('lead-stat-hoje')) el('lead-stat-hoje').innerText = leadsHoje;
     if (el('leads-count-badge')) el('leads-count-badge').innerText = ativos;
+    if (el('leads-section-count')) el('leads-section-count').innerText = ativos;
     if (el('sem-futuro-count-badge')) el('sem-futuro-count-badge').innerText = semSucesso;
+    if (el('sem-futuro-section-count')) el('sem-futuro-section-count').innerText = semSucesso;
 }
 
 // ============================================================
@@ -67,7 +69,7 @@ function renderLeadsList() {
         const isActive = activeLeadId === lead.id;
 
         container.innerHTML += `
-            <div class="bg-[var(--bg-card)] border ${isActive ? 'border-green-500 ring-1 ring-green-500/30' : 'border-green-500/30 hover:border-green-500/60'} rounded-2xl p-4 flex flex-col transition-all cursor-pointer" onclick="openLeadDetail('${lead.id}')">
+            <div class="card-green ${isActive ? 'active' : ''} p-4 flex flex-col cursor-pointer" onclick="openLeadDetail('${lead.id}')">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="w-11 h-11 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 flex items-center justify-center font-bold text-sm shrink-0">
                         ${initials}
@@ -78,7 +80,7 @@ function renderLeadsList() {
                             <i class="ph ph-whatsapp-logo text-green-500"></i> ${lead.phone || 'Sem telefone'}
                         </p>
                     </div>
-                    <span class="text-[10px] text-[var(--text-muted)] shrink-0">${createdDate ? formatDateBR(createdDate) : ''}</span>
+                    <span class="date-badge date-badge--green shrink-0"><i class="ph ph-calendar"></i> ${createdDate ? formatDateBR(createdDate) : ''}</span>
                 </div>
 
                 ${lead.description ? `
@@ -459,7 +461,7 @@ function renderSemFuturo() {
         const isActive = activeLeadId === lead.id;
 
         container.innerHTML += `
-            <div class="bg-[var(--bg-card)] border ${isActive ? 'border-red-500/60 ring-1 ring-red-500/20' : 'border-red-500/20 hover:border-red-500/40'} rounded-2xl p-4 flex items-center gap-4 transition-all cursor-pointer" onclick="openLeadDetail('${lead.id}')">
+            <div class="card-red ${isActive ? 'active' : ''} p-4 flex items-center gap-4 cursor-pointer" onclick="openLeadDetail('${lead.id}')">
                 <div class="w-10 h-10 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center font-bold text-xs shrink-0">
                     ${initials}
                 </div>
@@ -470,7 +472,7 @@ function renderSemFuturo() {
                         <span>·</span>
                         <span>${obs.length} obs</span>
                         <span>·</span>
-                        <span>${updatedDate ? formatDateBR(updatedDate) : (createdDate ? formatDateBR(createdDate) : '')}</span>
+                        <span class="date-badge date-badge--red"><i class="ph ph-calendar"></i> ${updatedDate ? formatDateBR(updatedDate) : (createdDate ? formatDateBR(createdDate) : '')}</span>
                     </p>
                 </div>
                 <button onclick="event.stopPropagation(); reactivateLead('${lead.id}')" class="py-2 px-3 bg-green-500/10 border border-green-500/30 hover:bg-green-500 hover:border-green-500 text-green-500 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1 shrink-0">
