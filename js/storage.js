@@ -372,6 +372,7 @@ const Storage = (() => {
             name: l.name,
             phone: l.phone || '',
             description: l.description || '',
+            renda: l.renda || '',
             status: l.status || 'active',
             created_at: l.createdAt || new Date().toISOString(),
             updated_at: l.updatedAt || new Date().toISOString()
@@ -384,6 +385,7 @@ const Storage = (() => {
             name: r.name,
             phone: r.phone || '',
             description: r.description || '',
+            renda: r.renda || '',
             status: r.status || 'active',
             createdAt: r.created_at || '',
             updatedAt: r.updated_at || ''

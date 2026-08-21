@@ -68,10 +68,9 @@ function renderLeadsList() {
         const createdDate = lead.createdAt ? lead.createdAt.split('T')[0] : '';
         const isActive = activeLeadId === lead.id;
 
-        // Verificar se tem observação de RENDA
-        const hasRenda = obs.some(o => o.text && o.text.toUpperCase().includes('RENDA'));
-        const rendaObs = obs.find(o => o.text && o.text.toUpperCase().includes('RENDA'));
-        const rendaValor = rendaObs ? rendaObs.text.replace(/.*RENDA[:\s]*/i, '').trim() : '';
+        // Verificar renda: campo dedicado OU observação
+        const hasRenda = lead.renda || obs.some(o => o.text && o.text.toUpperCase().includes('RENDA'));
+        const rendaValor = lead.renda || (obs.find(o => o.text && o.text.toUpperCase().includes('RENDA')) || {}).text || '';
 
         container.innerHTML += `
             <div class="card-green ${isActive ? 'active' : ''} ${hasRenda ? 'has-renda' : ''} p-4 flex flex-col cursor-pointer" onclick="openLeadDetail('${lead.id}')">
@@ -218,6 +217,7 @@ function renderLeadDetailPanel(leadId) {
             <p class="text-[10px] text-[var(--text-muted)] mb-2 flex items-center gap-1">
                 <i class="ph ph-calendar"></i> Criado em ${createdDate ? formatDateBR(createdDate) : '-'}
             </p>
+            ${lead.renda ? `<div class="bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/25 mb-2 flex items-center gap-2"><i class="ph ph-money text-yellow-400"></i><div><p class="text-[10px] text-yellow-400/70 font-medium">Renda</p><p class="text-sm text-yellow-300 font-semibold">${lead.renda}</p></div></div>` : ''}
             ${lead.description ? `<div class="bg-green-500/8 p-3 rounded-lg border border-green-500/20"><p class="text-xs text-green-400/70 font-medium mb-1"><i class="ph ph-text-align-left"></i> Descrição</p><p class="text-sm text-green-100/80">${lead.description}</p></div>` : ''}
         </div>
 
@@ -356,12 +356,13 @@ function handleCreateLead(e) {
     const name = document.getElementById('lead-name').value.trim();
     const phone = document.getElementById('lead-phone').value.trim();
     const description = document.getElementById('lead-desc').value.trim();
+    const renda = document.getElementById('lead-renda').value.trim();
 
     if (!name) { showToast('Digite o nome do lead.', 'error'); return; }
 
     const newLead = {
         id: generateId(),
-        name, phone, description,
+        name, phone, description, renda,
         status: 'active',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()

@@ -351,7 +351,14 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Descrição</label>
-                            <textarea id="lead-desc" placeholder="Descrição do lead, interesse, origem..." rows="3" class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg p-3 text-sm focus:outline-none focus:border-green-500 text-white placeholder-[var(--border-color)] transition-colors resize-none"></textarea>
+                            <textarea id="lead-desc" placeholder="Descrição do lead, interesse, origem..." rows="2" class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg p-3 text-sm focus:outline-none focus:border-green-500 text-white placeholder-[var(--border-color)] transition-colors resize-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Renda</label>
+                            <div class="relative">
+                                <i class="ph ph-money absolute left-3 top-1/2 -translate-y-1/2 text-yellow-400 text-lg"></i>
+                                <input type="text" id="lead-renda" placeholder="Ex: R$ 5.000, 3500, R$ 8.000/mês" class="w-full bg-[var(--bg-input)] border border-yellow-500/20 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-yellow-500 text-white placeholder-[var(--border-color)] transition-colors">
+                            </div>
                         </div>
                         <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-green-500/20">
                             <i class="ph ph-plus-circle text-lg"></i> Criar Lead
