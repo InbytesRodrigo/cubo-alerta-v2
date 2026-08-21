@@ -68,11 +68,16 @@ function renderLeadsList() {
         const createdDate = lead.createdAt ? lead.createdAt.split('T')[0] : '';
         const isActive = activeLeadId === lead.id;
 
+        // Verificar se tem observação de RENDA
+        const hasRenda = obs.some(o => o.text && o.text.toUpperCase().includes('RENDA'));
+        const rendaObs = obs.find(o => o.text && o.text.toUpperCase().includes('RENDA'));
+        const rendaValor = rendaObs ? rendaObs.text.replace(/.*RENDA[:\s]*/i, '').trim() : '';
+
         container.innerHTML += `
-            <div class="card-green ${isActive ? 'active' : ''} p-4 flex flex-col cursor-pointer" onclick="openLeadDetail('${lead.id}')">
+            <div class="card-green ${isActive ? 'active' : ''} ${hasRenda ? 'has-renda' : ''} p-4 flex flex-col cursor-pointer" onclick="openLeadDetail('${lead.id}')">
                 <div class="flex items-center gap-3 mb-2">
-                    <div class="w-11 h-11 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 flex items-center justify-center font-bold text-sm shrink-0">
-                        ${initials}
+                    <div class="w-11 h-11 rounded-full ${hasRenda ? 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' : 'bg-green-500/10 text-green-500 border-green-500/20'} border flex items-center justify-center font-bold text-sm shrink-0">
+                        ${hasRenda ? '<i class="ph ph-money text-lg"></i>' : initials}
                     </div>
                     <div class="flex-1 min-w-0">
                         <h3 class="font-medium text-white text-sm truncate" title="${lead.name}">${lead.name}</h3>
@@ -83,8 +88,14 @@ function renderLeadsList() {
                     <span class="date-badge date-badge--green shrink-0"><i class="ph ph-calendar"></i> ${createdDate ? formatDateBR(createdDate) : ''}</span>
                 </div>
 
-                ${lead.description ? `
-                <div class="bg-[var(--bg-input)] p-2.5 rounded-lg text-xs text-gray-300 border border-green-500/10 mb-2 line-clamp-1">
+                ${hasRenda ? `
+                <div class="bg-yellow-500/10 p-2.5 rounded-lg text-xs border border-yellow-500/25 mb-2 flex items-center gap-2">
+                    <i class="ph ph-money text-yellow-400"></i>
+                    <span class="text-yellow-300 font-semibold">RENDA: ${rendaValor || ' informada'}</span>
+                </div>` : ''}
+
+                ${lead.description && !hasRenda ? `
+                <div class="bg-green-500/6 p-2.5 rounded-lg text-xs text-gray-300 border border-green-500/15 mb-2 line-clamp-1">
                     ${lead.description}
                 </div>` : ''}
 
@@ -146,13 +157,19 @@ function renderLeadDetailPanel(leadId) {
     } else {
         obs.forEach(o => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('pt-BR') : '';
+            const isRenda = o.text && o.text.toUpperCase().includes('RENDA');
+            const obsBg = isRenda ? 'bg-yellow-500/10 border-yellow-500/25' : 'bg-[var(--bg-input)] border-[var(--border-color)]';
+            const obsIconBg = isRenda ? 'bg-yellow-500/15 text-yellow-400' : 'bg-green-500/10 text-green-500';
+            const obsIcon = isRenda ? 'ph-money' : 'ph-note';
+            const obsText = isRenda ? `<span class="text-yellow-300 font-bold">${o.text}</span>` : `<span class="text-gray-300">${o.text}</span>`;
+
             obsHTML += `
-                <div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 flex items-start gap-2 group/obs">
-                    <div class="w-7 h-7 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="ph ph-note text-xs"></i>
+                <div class="${obsBg} border rounded-xl p-3 flex items-start gap-2 group/obs">
+                    <div class="w-7 h-7 rounded-full ${obsIconBg} flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="ph ${obsIcon} text-xs"></i>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm text-gray-300">${o.text}</p>
+                        <p class="text-sm">${obsText}</p>
                         <p class="text-[10px] text-[var(--text-muted)] mt-1">${dateStr}</p>
                     </div>
                     <button onclick="deleteLeadObservationLocal('${lead.id}', '${o.id}')" class="p-1 text-[var(--text-muted)] hover:text-red-500 opacity-0 group-hover/obs:opacity-100 transition-all shrink-0" title="Excluir">
@@ -166,10 +183,11 @@ function renderLeadDetailPanel(leadId) {
     const isSemSucesso = lead.status === 'sem_sucesso';
     const headerIcon = isSemSucesso ? 'ph-prohibit text-red-400' : 'ph-whatsapp-logo text-green-500';
     const headerTitle = isSemSucesso ? 'Lead Sem Futuro' : 'Detalhe do Lead';
-    const avatarBg = isSemSucesso ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20';
+    const avatarBg = isSemSucesso ? 'bg-red-500/10 text-red-400 border-red-500/20' : (hasRenda ? 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' : 'bg-green-500/10 text-green-500 border-green-500/20');
     const statusBadge = isSemSucesso
         ? '<span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/40 text-red-400 flex items-center gap-1"><i class="ph ph-x-circle"></i> SEM FUTURO</span>'
         : '<span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-green-500/15 border border-green-500/40 text-green-500 flex items-center gap-1"><i class="ph ph-check-circle"></i> ATIVO</span>';
+    const rendaBadge = hasRenda ? `<span class="renda-badge"><i class="ph ph-money"></i> RENDA${rendaValor ? ': ' + rendaValor : ''}</span>` : '';
 
     content.innerHTML = `
         <div class="flex items-center justify-between mb-5">
@@ -186,9 +204,10 @@ function renderLeadDetailPanel(leadId) {
                     ${initials}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <h3 class="font-bold text-white text-base">${lead.name}</h3>
                         ${statusBadge}
+                        ${rendaBadge}
                     </div>
                     <p class="text-xs text-[var(--text-muted)] flex items-center gap-1 mt-0.5">
                         <i class="ph ph-whatsapp-logo text-green-500"></i> ${lead.phone || 'Sem telefone'}

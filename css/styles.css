@@ -274,3 +274,33 @@ body {
     border-color: rgba(239, 68, 68, 0.6);
     box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.3), 0 0 20px rgba(239, 68, 68, 0.08);
 }
+
+/* ============================================================
+   RENDA BADGE - destaque especial para observações de renda
+   ============================================================ */
+.renda-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(234, 179, 8, 0.12);
+    border: 1px solid rgba(234, 179, 8, 0.35);
+    color: #facc15;
+    letter-spacing: 0.03em;
+}
+.renda-badge i {
+    color: #facc15;
+}
+
+/* Lead card com renda - borda dourada sutil */
+.card-green.has-renda {
+    border-color: rgba(234, 179, 8, 0.35);
+    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(234, 179, 8, 0.04) 100%);
+}
+.card-green.has-renda:hover {
+    border-color: rgba(234, 179, 8, 0.55);
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.1);
+}
