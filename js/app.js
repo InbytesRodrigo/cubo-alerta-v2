@@ -956,7 +956,8 @@ function renderConcluidos() {
     const container = document.getElementById('list-concluidos-view');
     container.innerHTML = '';
 
-    const concluidos = alerts.filter(a => a.status === 'completed').sort((a,b) => new Date(b.completedAt) - new Date(a.completedAt));
+    // Só mostra alertas realmente concluídos (com notas de conclusão)
+    const concluidos = alerts.filter(a => a.status === 'completed' && a.completionNotes).sort((a,b) => new Date(b.completedAt) - new Date(a.completedAt));
 
     if(concluidos.length === 0) {
         container.innerHTML = `<div class="col-span-full py-10 text-center border border-dashed border-[var(--border-color)] rounded-xl text-[var(--text-muted)]">Nenhum alerta finalizado ainda.</div>`;
@@ -964,17 +965,55 @@ function renderConcluidos() {
     }
 
     concluidos.forEach(a => {
+        const initials = a.name ? a.name.substring(0, 2).toUpperCase() : '??';
         container.innerHTML += `
-            <div class="bg-[var(--bg-card)] border border-green-500/20 rounded-2xl p-5 flex flex-col relative">
+            <div class="bg-[var(--bg-card)] border border-green-500/20 rounded-2xl p-5 flex flex-col relative group">
                 <div class="absolute top-4 right-4 bg-green-500/10 text-green-500 p-1.5 rounded-full"><i class="ph-bold ph-check"></i></div>
-                <h3 class="font-bold text-white text-lg mb-1 pr-8">${a.name}</h3>
-                <p class="text-xs text-[var(--text-muted)] mb-4 flex items-center gap-1"><i class="ph ph-calendar-check"></i> Concluído em: ${formatDateBR(a.completedAt.split('T')[0])}</p>
-                <div class="bg-[var(--bg-input)] p-3 rounded-xl text-sm text-gray-300 border-l-2 border-green-500 line-clamp-3" title="${a.completionNotes}">
-                    "${a.completionNotes}"
+                <div class="flex items-start gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 flex items-center justify-center font-bold text-xs shrink-0">${initials}</div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-white text-base pr-8 truncate">${a.name}</h3>
+                        <p class="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-0.5">
+                            <span class="flex items-center gap-1"><i class="ph ph-calendar-check"></i> ${formatDateBR(a.completedAt.split('T')[0])}</span>
+                            <span>·</span>
+                            <span class="flex items-center gap-1"><i class="ph ph-clock"></i> ${a.time || '-'}</span>
+                            <span>·</span>
+                            <span class="flex items-center gap-1"><i class="ph ph-whatsapp-logo text-green-500"></i> ${a.phone || '-'}</span>
+                        </p>
+                    </div>
+                </div>
+
+                ${a.subject ? `<p class="text-xs text-[var(--text-muted)] mb-3 line-clamp-1">${a.subject}</p>` : ''}
+
+                <div class="bg-[var(--bg-input)] p-3 rounded-xl text-sm text-gray-300 border-l-2 border-green-500 mb-4 line-clamp-3" title="${a.completionNotes}">
+                    <span class="text-green-400/70 text-xs font-medium"><i class="ph ph-chat-circle-dots"></i> Nota:</span> ${a.completionNotes}
+                </div>
+
+                <div class="mt-auto flex gap-2">
+                    <button onclick="openEditAlert('${a.id}')" class="flex-1 py-2 bg-[var(--bg-input)] border border-[var(--border-color)] hover:border-[var(--brand-orange)] text-[var(--text-muted)] hover:text-[var(--brand-orange)] rounded-xl text-xs font-medium transition-all flex justify-center items-center gap-1">
+                        <i class="ph ph-pencil-simple"></i> Editar
+                    </button>
+                    <button onclick="reactivateAlert('${a.id}')" class="flex-1 py-2 bg-green-500/10 border border-green-500/30 hover:bg-green-500 hover:border-green-500 text-green-500 hover:text-white rounded-xl text-xs font-medium transition-all flex justify-center items-center gap-1">
+                        <i class="ph ph-arrow-counter-clockwise"></i> Reativar
+                    </button>
                 </div>
             </div>
         `;
     });
+}
+
+function reactivateAlert(id) {
+    const alert = alerts.find(a => a.id === id);
+    if (!alert) return;
+    if (!confirm(`Reativar o alerta de "${alert.name}"? Ele voltará como pendente.`)) return;
+
+    alert.status = 'pending';
+    alert.completedAt = null;
+    alert.completionNotes = '';
+    saveData();
+
+    showToast(`Alerta de "${alert.name}" reativado!`, 'success');
+    renderDashboard();
 }
 
 // --- Configurações Admin ---
