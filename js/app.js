@@ -26,7 +26,7 @@ let activePushAlertId = null;
 let isPushActive = false;
 let editingAlertId = null;
 
-// WhatsApp Leads (definidos em leads.js)
+// WhatsApp Leads: definidos em js/leads.js (antes deste arquivo)
 
 // Audio
 let audioCtx = null;

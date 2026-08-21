@@ -5,7 +5,10 @@
    chamada novamente (cria alerta), sem sucesso (sem futuro).
    ============================================================ */
 
-// --- Estado dos Leads (variáveis globais definidas em app.js) ---
+// --- Estado dos Leads ---
+let leads = [];
+let leadObservations = {}; // { leadId: [observations] }
+let activeLeadId = null;
 
 // --- Helpers ---
 function saveLeadsData() {
