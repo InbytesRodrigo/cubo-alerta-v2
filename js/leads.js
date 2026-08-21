@@ -27,29 +27,11 @@ function renderLeadsDashboard() {
     const ativos = leads.filter(l => l.status === 'active').length;
     const semSucesso = leads.filter(l => l.status === 'sem_sucesso').length;
 
-    // Leads de hoje
     const leadsHoje = leads.filter(l => {
         const d = l.createdAt ? l.createdAt.split('T')[0] : '';
         return d === todayStr;
     }).length;
 
-    // Leads da semana
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-    const leadsSemana = leads.filter(l => {
-        if (!l.createdAt) return false;
-        return new Date(l.createdAt) >= startOfWeek;
-    }).length;
-
-    // Leads do mês
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const leadsMes = leads.filter(l => {
-        if (!l.createdAt) return false;
-        return new Date(l.createdAt) >= startOfMonth;
-    }).length;
-
-    // Atualizar stats na aba WhatsApp LEAD
     const elTotal = document.getElementById('lead-stat-total');
     const elAtivos = document.getElementById('lead-stat-ativos');
     const elSemSucesso = document.getElementById('lead-stat-sem-sucesso');
@@ -60,7 +42,6 @@ function renderLeadsDashboard() {
     if (elSemSucesso) elSemSucesso.innerText = semSucesso;
     if (elHoje) elHoje.innerText = leadsHoje;
 
-    // Atualizar contadores nas abas
     const tabBadge = document.getElementById('leads-count-badge');
     if (tabBadge) tabBadge.innerText = ativos;
     const semFuturoBadge = document.getElementById('sem-futuro-count-badge');
@@ -72,20 +53,18 @@ function renderLeadsList() {
     const container = document.getElementById('leads-list');
     const empty = document.getElementById('leads-empty');
     if (!container) return;
-    container.innerHTML = '';
 
-    let filtered = leads;
+    // Se está no modo detalhe, renderiza o detalhe
     if (activeLeadId) {
-        // modo detalhe
         renderLeadDetail(activeLeadId);
         return;
     }
 
-    filtered = leads.filter(l => l.status === 'active');
+    container.innerHTML = '';
+    const filtered = leads.filter(l => l.status === 'active');
 
     if (filtered.length === 0) {
         empty.classList.remove('hidden');
-        container.innerHTML = '';
         return;
     }
     empty.classList.add('hidden');
@@ -99,13 +78,13 @@ function renderLeadsList() {
         const obsCount = obs.length;
 
         container.innerHTML += `
-            <div class="bg-[var(--bg-card)] border border-green-500/30 hover:border-green-500/60 rounded-2xl p-4 flex flex-col transition-colors group">
-                <div class="flex items-start gap-3 mb-3">
+            <div class="bg-[var(--bg-card)] border border-green-500/30 hover:border-green-500/60 rounded-2xl p-4 flex flex-col transition-colors">
+                <div class="flex items-center gap-3 mb-3">
                     <div class="w-11 h-11 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 flex items-center justify-center font-bold text-sm shrink-0">
                         ${initials}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <h3 class="font-medium text-white text-base truncate" title="${lead.name}">${lead.name}</h3>
+                        <h3 class="font-medium text-white text-sm truncate" title="${lead.name}">${lead.name}</h3>
                         <p class="text-xs text-[var(--text-muted)] flex items-center gap-1 mt-0.5">
                             <i class="ph ph-whatsapp-logo text-green-500"></i> ${lead.phone || 'Sem telefone'}
                         </p>
@@ -124,13 +103,13 @@ function renderLeadsList() {
                 </div>
 
                 <div class="mt-auto flex gap-2">
-                    <button onclick="openLeadDetail('${lead.id}')" class="flex-1 py-2 bg-green-500/10 border border-green-500/40 hover:bg-green-500 hover:border-green-500 text-green-500 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1">
-                        <i class="ph ph-eye"></i> Ver Detalhes
+                    <button onclick="openLeadDetail('${lead.id}')" class="flex-1 py-2.5 bg-green-500/10 border border-green-500/40 hover:bg-green-500 hover:border-green-500 text-green-500 hover:text-white rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1">
+                        <i class="ph ph-eye"></i> Detalhes
                     </button>
-                    <button onclick="callLeadAgain('${lead.id}')" class="py-2 bg-[var(--bg-input)] border border-[var(--border-color)] hover:border-orange-500 hover:bg-orange-500/10 text-[var(--text-muted)] hover:text-orange-400 rounded-xl text-xs font-medium transition-all flex items-center gap-1 px-3" title="Chamar novamente (criar alerta)">
+                    <button onclick="callLeadAgain('${lead.id}')" class="py-2.5 px-3 bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500 hover:border-orange-500 text-orange-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1" title="Chamar novamente (criar alerta)">
                         <i class="ph ph-bell-ringing"></i>
                     </button>
-                    <button onclick="markLeadAsSemSucesso('${lead.id}')" class="py-2 bg-[var(--bg-input)] border border-[var(--border-color)] hover:border-red-500 hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 rounded-xl text-xs font-medium transition-all flex items-center gap-1 px-3" title="Marcar sem sucesso">
+                    <button onclick="markLeadAsSemSucesso('${lead.id}')" class="py-2.5 px-3 bg-red-500/10 border border-red-500/40 hover:bg-red-500 hover:border-red-500 text-red-400 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1" title="Sem sucesso">
                         <i class="ph ph-x-circle"></i>
                     </button>
                 </div>
@@ -159,7 +138,7 @@ function renderLeadDetail(leadId) {
 
     let obsHTML = '';
     if (obs.length === 0) {
-        obsHTML = '<div class="text-center text-[var(--text-muted)] text-sm py-6 border border-dashed border-[var(--border-color)] rounded-xl"><i class="ph ph-chat-circle-dots text-2xl mb-2 text-gray-600"></br>Nenhuma observação ainda.</div>';
+        obsHTML = '<div class="text-center text-[var(--text-muted)] text-sm py-6 border border-dashed border-[var(--border-color)] rounded-xl"><i class="ph ph-chat-circle-dots text-2xl mb-2 text-gray-600"></i><br>Nenhuma observação ainda.</div>';
     } else {
         obs.forEach(o => {
             const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('pt-BR') : '';
@@ -172,7 +151,7 @@ function renderLeadDetail(leadId) {
                         <p class="text-sm text-gray-300">${o.text}</p>
                         <p class="text-[10px] text-[var(--text-muted)] mt-1">${dateStr}</p>
                     </div>
-                    <button onclick="deleteLeadObservationLocal('${lead.id}', '${o.id}')" class="p-1 text-[var(--text-muted)] hover:text-red-500 opacity-0 group-hover/obs:opacity-100 transition-all shrink-0" title="Excluir observação">
+                    <button onclick="deleteLeadObservationLocal('${lead.id}', '${o.id}')" class="p-1 text-[var(--text-muted)] hover:text-red-500 opacity-0 group-hover/obs:opacity-100 transition-all shrink-0" title="Excluir">
                         <i class="ph ph-trash text-sm"></i>
                     </button>
                 </div>
@@ -181,13 +160,11 @@ function renderLeadDetail(leadId) {
     }
 
     container.innerHTML = `
-        <div class="space-y-6">
-            <!-- Botão voltar -->
+        <div class="space-y-6 max-w-3xl">
             <button onclick="closeLeadDetail()" class="flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-white transition-colors">
                 <i class="ph ph-arrow-left"></i> Voltar para lista
             </button>
 
-            <!-- Info do Lead -->
             <div class="bg-[var(--bg-card)] border border-green-500/30 rounded-2xl p-6">
                 <div class="flex items-start gap-4 mb-4">
                     <div class="w-14 h-14 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 flex items-center justify-center font-bold text-lg shrink-0">
@@ -210,31 +187,29 @@ function renderLeadDetail(leadId) {
                     <p>${lead.description}</p>
                 </div>` : ''}
 
-                <div class="flex gap-2">
-                    <a href="https://wa.me/55${(lead.phone || '').replace(/\D/g, '')}" target="_blank" class="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-semibold transition-all flex justify-center items-center gap-2">
-                        <i class="ph-bold ph-whatsapp-logo"></i> Abrir no WhatsApp
+                <div class="flex flex-wrap gap-2">
+                    <a href="https://wa.me/55${(lead.phone || '').replace(/\D/g, '')}" target="_blank" class="flex-1 min-w-[140px] py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-semibold transition-all flex justify-center items-center gap-2">
+                        <i class="ph-bold ph-whatsapp-logo"></i> WhatsApp
                     </a>
-                    <button onclick="callLeadAgain('${lead.id}')" class="flex-1 py-2.5 bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500 hover:border-orange-500 text-orange-400 hover:text-white rounded-xl text-sm font-semibold transition-all flex justify-center items-center gap-2">
+                    <button onclick="callLeadAgain('${lead.id}')" class="flex-1 min-w-[140px] py-2.5 bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500 hover:border-orange-500 text-orange-400 hover:text-white rounded-xl text-sm font-semibold transition-all flex justify-center items-center gap-2">
                         <i class="ph ph-bell-ringing"></i> Chamar Novamente
                     </button>
-                    <button onclick="markLeadAsSemSucesso('${lead.id}')" class="py-2.5 bg-red-500/10 border border-red-500/40 hover:bg-red-500 hover:border-red-500 text-red-400 hover:text-white rounded-xl text-sm font-semibold transition-all flex items-center gap-2 px-4">
+                    <button onclick="markLeadAsSemSucesso('${lead.id}')" class="py-2.5 px-4 bg-red-500/10 border border-red-500/40 hover:bg-red-500 hover:border-red-500 text-red-400 hover:text-white rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
                         <i class="ph ph-x-circle"></i> Sem Sucesso
                     </button>
                 </div>
             </div>
 
-            <!-- Observações -->
             <div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6">
                 <h3 class="text-green-500 font-medium mb-4 flex items-center gap-2">
                     <i class="ph ph-chat-circle-dots"></i> Observações (${obs.length})
                 </h3>
 
-                <!-- Formulário nova observação -->
                 <div class="flex gap-2 mb-4">
                     <input type="text" id="new-lead-obs-text" placeholder="Adicionar observação..." class="flex-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-green-500 placeholder-[var(--border-color)] transition-colors"
                         onkeydown="if(event.key==='Enter')addLeadObservationLocal('${lead.id}')">
                     <button onclick="addLeadObservationLocal('${lead.id}')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 shrink-0">
-                        <i class="ph ph-plus"></i> Adicionar
+                        <i class="ph ph-plus"></i>
                     </button>
                 </div>
 
@@ -284,16 +259,15 @@ function handleCreateLead(e) {
     // Limpar formulário
     e.target.reset();
 
+    // SEMPRE fechar o modal
+    closeCreateLeadModal();
+
     showToast('Lead criado com sucesso!', 'success');
+
+    // Atualizar tudo
     renderLeadsDashboard();
     renderLeadsList();
     renderSemFuturo();
-
-    // Fechar modal no mobile
-    if (window.innerWidth < 1024) {
-        const modal = document.getElementById('create-lead-modal');
-        if (modal) modal.classList.add('hidden');
-    }
 }
 
 function openCreateLeadModal() {
@@ -355,24 +329,45 @@ function callLeadAgain(leadId) {
     const lead = leads.find(l => l.id === leadId);
     if (!lead) return;
 
-    // Abre o formulário de alerta preenchido com os dados do lead
+    // Preenche o formulário de alerta
     document.getElementById('alert-name').value = lead.name;
     document.getElementById('alert-phone').value = lead.phone || '';
     document.getElementById('alert-subject').value = `Retorno para lead: ${lead.name}`;
     document.getElementById('alert-category').value = 'WhatsApp';
-    document.getElementById('alert-notes').value = `Lead original: ${lead.name} - ${lead.phone}\n${lead.description || ''}`;
+    document.getElementById('alert-notes').value = `Lead: ${lead.name} | Tel: ${lead.phone || '-'}\n${lead.description || ''}`;
 
     // Definir data/hora para daqui 15 min
-    setQuickTime(15);
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 15);
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('alert-date').value = `${yyyy}-${mm}-${dd}`;
+    document.getElementById('alert-time').value = `${hh}:${min}`;
 
-    // Trocar para aba de alertas e abrir sidebar
+    // Trocar para aba de alertas
     switchTab('todos');
+
+    // Abrir sidebar (funciona tanto mobile quanto desktop)
     const sidebar = document.getElementById('sidebar-form');
-    if (sidebar && sidebar.classList.contains('translate-x-full')) {
-        toggleSidebar();
+    if (sidebar) {
+        // Forçar abertura removendo translate-x-full
+        sidebar.classList.remove('translate-x-full');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (overlay && window.innerWidth < 1024) {
+            overlay.classList.remove('hidden');
+        }
     }
 
-    showToast(`Alerta criado para ${lead.name} (daqui 15 min)`, 'success');
+    // Foco no botão de submit após um breve delay
+    setTimeout(() => {
+        const submitBtn = document.getElementById('submit-alert-btn');
+        if (submitBtn) submitBtn.focus();
+    }, 300);
+
+    showToast(`Formulário preenchido para ${lead.name} — clique em "Criar Alerta"`, 'info');
 }
 
 // --- Marcar como Sem Sucesso ---
@@ -385,7 +380,6 @@ function markLeadAsSemSucesso(leadId) {
     lead.updatedAt = new Date().toISOString();
     saveLeadsData();
 
-    // Se estiver no detalhe, voltar para lista
     if (activeLeadId === leadId) {
         activeLeadId = null;
     }
