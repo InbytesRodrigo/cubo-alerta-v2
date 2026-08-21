@@ -94,12 +94,21 @@ function renderLeadsList() {
                 </div>` : ''}
 
                 ${lead.description ? `
-                <div class="bg-green-500/8 p-2.5 rounded-lg text-xs text-green-200/80 border border-green-500/20 mb-2 line-clamp-2 flex items-start gap-1.5">
+                <div class="bg-green-500/8 p-2.5 rounded-lg text-xs text-green-200/80 border border-green-500/20 mb-2 line-clamp-1 flex items-start gap-1.5">
                     <i class="ph ph-text-align-left text-green-500/50 mt-0.5 shrink-0"></i>
                     <span>${lead.description}</span>
                 </div>` : ''}
 
+                ${obs.length > 0 ? `
+                <div class="bg-[var(--bg-input)] p-2 rounded-lg text-[11px] text-[var(--text-muted)] border border-[var(--border-color)] mb-2 line-clamp-1 flex items-start gap-1.5">
+                    <i class="ph ph-chat-circle-dots text-green-500/60 mt-0.5 shrink-0"></i>
+                    <span class="italic">${obs[obs.length - 1].text}</span>
+                </div>` : ''}
+
                 <div class="flex items-center justify-between mt-1">
+                    <span class="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
+                        <i class="ph ph-chat-circle-dots text-green-500"></i> ${obs.length} obs
+                    </span>
                     <span class="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
                         <i class="ph ph-chat-circle-dots text-green-500"></i> ${obs.length} obs
                     </span>
@@ -232,7 +241,11 @@ function renderLeadDetailPanel(leadId) {
                 <i class="ph ph-calendar"></i> Criado em ${createdDate ? formatDateBR(createdDate) : '-'}
             </p>
             ${lead.renda ? `<div class="bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/25 mb-2 flex items-center gap-2 cursor-pointer hover:bg-yellow-500/15 transition-colors" onclick="editLeadRenda('${lead.id}')"><i class="ph ph-money text-yellow-400"></i><div class="flex-1"><p class="text-[10px] text-yellow-400/70 font-medium">Renda</p><p class="text-sm text-yellow-300 font-semibold">${lead.renda}</p></div><i class="ph ph-pencil-simple text-yellow-400/50 text-xs"></i></div>` : `<div class="bg-yellow-500/5 p-3 rounded-lg border border-dashed border-yellow-500/20 mb-2 flex items-center gap-2 cursor-pointer hover:bg-yellow-500/10 transition-colors" onclick="editLeadRenda('${lead.id}')"><i class="ph ph-money text-yellow-400/50"></i><span class="text-xs text-yellow-400/60">Adicionar renda</span><i class="ph ph-plus text-yellow-400/40 text-xs ml-auto"></i></div>`}
-            ${lead.description ? `<div class="bg-green-500/8 p-3 rounded-lg border border-green-500/20"><p class="text-xs text-green-400/70 font-medium mb-1"><i class="ph ph-text-align-left"></i> Descrição</p><p class="text-sm text-green-100/80">${lead.description}</p></div>` : ''}
+            ${lead.description ? `<div class="bg-green-500/8 p-3 rounded-lg border border-green-500/20 mb-2"><p class="text-xs text-green-400/70 font-medium mb-1"><i class="ph ph-text-align-left"></i> Descrição</p><p class="text-sm text-green-100/80">${lead.description}</p></div>` : ''}
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                ${lead.regiao ? `<div class="bg-blue-500/8 p-2.5 rounded-lg border border-blue-500/20 flex items-center gap-2"><i class="ph ph-map-pin text-blue-400"></i><div><p class="text-[10px] text-blue-400/70 font-medium">Região</p><p class="text-xs text-blue-200/80 font-medium">${lead.regiao}</p></div></div>` : ''}
+                ${lead.anuncio ? `<div class="bg-purple-500/8 p-2.5 rounded-lg border border-purple-500/20 flex items-center gap-2"><i class="ph ph-megaphone text-purple-400"></i><div><p class="text-[10px] text-purple-400/70 font-medium">Anúncio</p><p class="text-xs text-purple-200/80 font-medium">${lead.anuncio}</p></div></div>` : ''}
+            </div>
         </div>
 
         <!-- Botões de ação -->
@@ -400,6 +413,8 @@ function handleCreateLead(e) {
     const phone = document.getElementById('lead-phone').value.trim();
     const description = document.getElementById('lead-desc').value.trim();
     const renda = document.getElementById('lead-renda').value.trim();
+    const regiao = document.getElementById('lead-regiao').value.trim();
+    const anuncio = document.getElementById('lead-anuncio').value.trim();
 
     if (!name) { showToast('Digite o nome do lead.', 'error'); return; }
 
@@ -411,6 +426,8 @@ function handleCreateLead(e) {
             lead.phone = phone;
             lead.description = description;
             lead.renda = renda;
+            lead.regiao = regiao;
+            lead.anuncio = anuncio;
             lead.updatedAt = new Date().toISOString();
             saveLeadsData();
             cancelEditLead();
@@ -426,7 +443,7 @@ function handleCreateLead(e) {
     // MODO CRIAÇÃO
     const newLead = {
         id: generateId(),
-        name, phone, description, renda,
+        name, phone, description, renda, regiao, anuncio,
         status: 'active',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -465,6 +482,8 @@ function openEditLeadModal(leadId) {
     document.getElementById('lead-phone').value = lead.phone || '';
     document.getElementById('lead-desc').value = lead.description || '';
     document.getElementById('lead-renda').value = lead.renda || '';
+    document.getElementById('lead-regiao').value = lead.regiao || '';
+    document.getElementById('lead-anuncio').value = lead.anuncio || '';
 
     document.getElementById('create-lead-title').innerText = 'Editar Lead';
     document.getElementById('create-lead-submit').innerHTML = '<i class="ph ph-floppy-disk"></i> Salvar Alterações';

@@ -62,6 +62,8 @@ create table if not exists public.leads (
   phone text,
   description text,
   renda text,
+  regiao text,
+  anuncio text,
   status text default 'active',
   created_at timestamptz default now(),
   updated_at timestamptz default now()

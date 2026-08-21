@@ -361,6 +361,22 @@
                                 <input type="text" id="lead-renda" placeholder="Ex: R$ 5.000, 3500, R$ 8.000/mês" class="w-full bg-[var(--bg-input)] border border-yellow-500/20 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-yellow-500 text-white placeholder-[var(--border-color)] transition-colors">
                             </div>
                         </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Região</label>
+                                <div class="relative">
+                                    <i class="ph ph-map-pin absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 text-lg"></i>
+                                    <input type="text" id="lead-regiao" placeholder="Ex: Centro, Zona Sul" class="w-full bg-[var(--bg-input)] border border-blue-500/20 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white placeholder-[var(--border-color)] transition-colors">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Origem do Anúncio</label>
+                                <div class="relative">
+                                    <i class="ph ph-megaphone absolute left-3 top-1/2 -translate-y-1/2 text-purple-400 text-lg"></i>
+                                    <input type="text" id="lead-anuncio" placeholder="Ex: Facebook, Google" class="w-full bg-[var(--bg-input)] border border-purple-500/20 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-purple-500 text-white placeholder-[var(--border-color)] transition-colors">
+                                </div>
+                            </div>
+                        </div>
                         <button id="create-lead-submit" type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-green-500/20">
                             <i class="ph ph-plus-circle text-lg"></i> Criar Lead
                         </button>
