@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   CENTRAL DE ALERTAS - Estilos customizados
+   (Os estilos utilitários vêm do Tailwind via CDN no index.html)
+   ============================================================ */
+
+:root {
+    --brand-orange: #ff5a00;
+    --brand-orange-hover: #e04f00;
+    --bg-base: #09090b; /* Preto profundo */
+    --bg-card: #121214; /* Cinza bem escuro para cards */
+    --bg-input: #18181b;
+    --border-color: #27272a;
+    --text-main: #f4f4f5;
+    --text-muted: #a1a1aa;
+}
+
+body {
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow-x: hidden;
+}
+
+/* Scrollbar customizada clean */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+    background: #3f3f46; 
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #52525b; 
+}
+.hide-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* Animações de notificação */
+@keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(1.3); opacity: 0; }
+}
+.ring-anim {
+    position: relative;
+}
+.ring-anim::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    border: 2px solid var(--brand-orange);
+    animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* Modal blur */
+.glass-panel {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background-color: rgba(0, 0, 0, 0.85);
+}
+
+/* ============================================================
+   PUSH EM TELA CHEIA - visual "muito top"
+   ============================================================ */
+.push-overlay {
+    background: radial-gradient(ellipse at center, rgba(255, 90, 0, 0.18), rgba(0, 0, 0, 0.93) 70%);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.push-modal {
+    animation: push-in 0.5s cubic-bezier(0.22, 1.2, 0.36, 1) forwards;
+}
+@keyframes push-in {
+    from { opacity: 0; transform: scale(0.82) translateY(24px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Aura giratória atrás do modal */
+.push-glow {
+    background: conic-gradient(
+        from 0deg,
+        rgba(255, 90, 0, 0.75),
+        rgba(255, 138, 31, 0.12),
+        rgba(217, 72, 15, 0.55),
+        rgba(255, 90, 0, 0.75)
+    );
+    filter: blur(22px);
+    animation: glow-spin 5s linear infinite;
+    pointer-events: none;
+}
+@keyframes glow-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Anel pulsante do sino */
+.push-bell-wrap { animation: bell-shake 0.9s ease-in-out infinite; }
+@keyframes bell-shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-6deg); }
+    75% { transform: rotate(6deg); }
+}
+.push-bell-ring {
+    border: 3px solid rgba(255, 90, 0, 0.55);
+    animation: bell-pulse 1.3s ease-out infinite;
+}
+@keyframes bell-pulse {
+    0% { transform: scale(1); opacity: 0.75; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* Barra de instalação do PWA */
+#install-banner {
+    animation: banner-drop 0.4s cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+@keyframes banner-drop {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Lista do relatório */
+.report-list::-webkit-scrollbar { width: 6px; }
+.report-list::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+.report-list { scrollbar-width: thin; scrollbar-color: #3f3f46 transparent; }

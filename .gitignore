@@ -1,0 +1,13 @@
+# Dependências
+node_modules/
+
+# Ambiente da ferramenta Freebuff (banco interno, não versionar)
+.freebuff/
+
+# Logs e arquivos do sistema
+*.log
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários do Supabase CLI
+supabase/.temp/

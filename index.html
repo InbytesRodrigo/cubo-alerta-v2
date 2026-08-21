@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Central de Alertas - sistema de gerenciamento de alertas e leads">
+    <meta name="theme-color" content="#ff5a00">
+    <style>
+        /* Aparência mínima durante a inicialização e proteção contra tela branca. */
+        html, body { margin: 0; min-height: 100%; background: #09090b; color: #f4f4f5; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        .hidden { display: none !important; }
+    </style>
+    <title>Grupo Aureos | Alerta de LEADS</title>
+    <link rel="icon" href="pwa/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="pwa/icons/icon-192.png">
+    <link rel="manifest" href="pwa/manifest.webmanifest">
+    <link rel="stylesheet" href="css/app.css?v=10">
+    <link rel="stylesheet" href="pwa/phosphor/regular/style.css">
+    <link rel="stylesheet" href="pwa/phosphor/fill/style.css">
+    <link rel="stylesheet" href="pwa/phosphor/bold/style.css">
+
+</head>
+<body class="h-screen w-full flex overflow-hidden">
+
+    <!-- Banner de instalação do PWA -->
+    <div id="install-banner" class="hidden fixed top-0 inset-x-0 z-[100] bg-gradient-to-r from-[var(--brand-orange)] to-orange-700 text-white shadow-2xl">
+        <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0"><i class="ph-fill ph-download-simple text-xl"></i></div>
+                <div>
+                    <p class="font-semibold text-sm">Baixe o app Grupo Aureos</p>
+                    <p class="text-xs text-orange-100">Funciona offline, direto da tela inicial do seu celular/PC</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+                <button id="install-btn" onclick="installPWA()" class="bg-white text-[var(--brand-orange)] font-semibold text-sm px-4 py-2 rounded-lg hover:bg-orange-50 transition-colors shadow">Instalar</button>
+                <button onclick="dismissInstallBanner()" class="text-white/80 hover:text-white text-xl px-1" title="Agora não"><i class="ph ph-x"></i></button>
+            </div>
+        </div>
+        <p id="install-ios-note" class="hidden text-center text-xs text-orange-100 pb-2 px-6">No iPhone/iPad: toque em <strong>Compartilhar</strong> <i class="ph ph-export"></i> e depois em <strong>"Adicionar à Tela de Início"</strong>.</p>
+    </div>
+
+    <!-- Atualização do PWA: aparece brevemente durante a troca automática -->
+    <div id="update-banner" class="hidden fixed top-0 inset-x-0 z-[110] bg-gradient-to-r from-emerald-600 to-green-700 text-white shadow-2xl">
+        <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0"><i class="ph-fill ph-arrow-circle-down text-xl"></i></div>
+                <div>
+                    <p class="font-semibold text-sm">Atualizando o aplicativo…</p>
+                    <p class="text-xs text-green-100">A nova versão será aberta automaticamente.</p>
+                </div>
+            </div>
+            <i class="ph ph-circle-notch ph-spin text-2xl shrink-0" aria-hidden="true"></i>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- Aviso de conexão com o banco (aparece enquanto não estiver salvando no Supabase) -->
+        <div id="db-warning" class="hidden bg-gradient-to-r from-red-600 to-orange-600 text-white px-6 py-2.5 text-sm shadow-lg z-20">
+            <span id="db-warning-text" class="flex items-center gap-2"><i class="ph-bold ph-warning-circle text-lg shrink-0"></i> <span>Sem conexão com o banco.</span></span>
+        </div>
+
+        <!-- Header Identico à Imagem -->
+        <header class="border-b border-[var(--border-color)] px-6 py-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-[var(--bg-base)]">
+            <div class="flex items-center gap-4">
+                <div class="ring-anim w-12 h-12 rounded-xl bg-[var(--brand-orange)]/10 text-[var(--brand-orange)] flex items-center justify-center border border-[var(--brand-orange)]/30">
+                    <i class="ph-fill ph-bell-ringing text-2xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-2xl font-semibold tracking-tight text-white">Grupo Aureos</h1>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--brand-orange)] bg-[var(--brand-orange)]/10 border border-[var(--brand-orange)]/30 px-2.5 py-1 rounded-full">Alerta de LEADS</span>
+                    </div>
+                    <p class="text-sm text-[var(--text-muted)]">Você tem <span id="header-pending-count" class="text-[var(--brand-orange)] font-medium">0 alertas</span> para hoje. <span id="sync-status" class="hidden text-[10px] text-green-400 align-middle"></span></p>
+                </div>
+            </div>
+
+            <!-- Busca -->
+            <div class="relative w-full md:w-96">
+                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"></i>
+                <input type="text" id="search-input" onkeyup="filterAlerts()" placeholder="Buscar alertas ou contatos..." class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg pl-10 pr-16 py-2.5 text-sm focus:outline-none focus:border-[var(--brand-orange)] text-white placeholder-[var(--text-muted)] transition-colors">
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <kbd class="hidden md:inline-block px-1.5 py-0.5 text-[10px] bg-[var(--bg-input)] border border-[var(--border-color)] rounded text-[var(--text-muted)]">Ctrl + K</kbd>
+                </div>
+            </div>
+        </header>
+
+        <div class="px-6 border-b border-[var(--border-color)] bg-[var(--bg-base)] z-10 flex items-center justify-between overflow-x-auto hide-scroll">
+            <div class="flex space-x-6">
+                <button onclick="switchTab('todos')" id="tab-todos" class="py-4 text-sm font-medium border-b-2 border-[var(--brand-orange)] text-white whitespace-nowrap transition-colors relative">Todos</button>
+                <button onclick="switchTab('historico')" id="tab-historico" class="py-4 text-sm font-medium border-b-2 border-transparent text-[var(--text-muted)] hover:text-white whitespace-nowrap transition-colors flex items-center gap-2">Histórico <span class="bg-[var(--brand-orange)]/20 text-[var(--brand-orange)] text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Admin</span></button>
+                <button onclick="switchTab('concluidos')" id="tab-concluidos" class="py-4 text-sm font-medium border-b-2 border-transparent text-[var(--text-muted)] hover:text-white whitespace-nowrap transition-colors">Concluídos</button>
+                <button onclick="switchTab('config')" id="tab-config" class="py-4 text-sm font-medium border-b-2 border-transparent text-[var(--text-muted)] hover:text-white whitespace-nowrap transition-colors flex items-center gap-2"><i class="ph ph-gear"></i> Configurações</button>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-4 text-sm text-[var(--text-muted)]">
+                <span class="flex items-center gap-1"><i class="ph ph-phone-call"></i> Ligação</span>
+                <span class="flex items-center gap-1"><i class="ph ph-whatsapp-logo text-green-500"></i> WhatsApp</span>
+                <span class="flex items-center gap-1"><i class="ph ph-arrow-u-down-left"></i> Retorno</span>
+                <span class="flex items-center gap-1"><i class="ph ph-calendar-blank"></i> Reunião</span>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 scroll-smooth" id="main-scroll-area">
+            
+            <!-- VIEW: TODOS (Dashboard) -->
+            <div id="view-todos" class="space-y-8 max-w-5xl mx-auto xl:mx-0 w-full">
+                
+                <!-- Cards de Resumo -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-[var(--bg-card)] border border-[var(--border-color)] p-5 rounded-2xl flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-full bg-[var(--brand-orange)]/10 text-[var(--brand-orange)] border border-[var(--brand-orange)]/20 flex items-center justify-center"><i class="ph ph-calendar-blank text-lg"></i></div>
+                            <span class="text-xs text-[var(--text-muted)] font-medium">Hoje</span>
+                        </div>
+                        <div class="mt-auto">
+                            <p class="text-3xl font-bold text-white" id="stat-hoje">0</p>
+                            <p class="text-[var(--text-muted)] text-xs">alertas</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-[var(--bg-card)] border border-[var(--border-color)] p-5 rounded-2xl flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-full bg-[var(--brand-orange)]/10 text-[var(--brand-orange)] border border-[var(--brand-orange)]/20 flex items-center justify-center"><i class="ph ph-clock text-lg"></i></div>
+                            <span class="text-xs text-[var(--text-muted)] font-medium">Pendentes</span>
+                        </div>
+                        <div class="mt-auto">
+                            <p class="text-3xl font-bold text-white" id="stat-pendentes">0</p>
+                            <p class="text-[var(--text-muted)] text-xs">alertas</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-[var(--bg-card)] border border-red-500/20 p-5 rounded-2xl flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center"><i class="ph ph-warning-circle text-lg"></i></div>
+                            <span class="text-xs text-[var(--text-muted)] font-medium">Atrasados</span>
+                        </div>
+                        <div class="mt-auto">
+                            <p class="text-3xl font-bold text-red-500" id="stat-atrasados">0</p>
+                            <p class="text-[var(--text-muted)] text-xs">alerta</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-[var(--bg-card)] border border-[var(--border-color)] p-5 rounded-2xl flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-full bg-[var(--brand-orange)]/10 text-[var(--brand-orange)] border border-[var(--brand-orange)]/20 flex items-center justify-center"><i class="ph ph-check-circle text-lg"></i></div>
+                            <span class="text-xs text-[var(--text-muted)] font-medium">Concluídos</span>
+                        </div>
+                        <div class="mt-auto">
+                            <p class="text-3xl font-bold text-white" id="stat-concluidos-hoje">0</p>
+                            <p class="text-[var(--text-muted)] text-xs">hoje</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- Atrasados -->
+                    <div id="section-atrasados" class="hidden">
+                        <h2 class="text-red-500 font-medium mb-4 flex items-center gap-2">
+                            Atrasado <span class="bg-gradient-to-r from-red-500/30 to-red-500/5 border border-red-500/30 text-red-500 text-xs py-0.5 px-2 rounded-full" id="count-atrasados">0</span>
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="list-atrasados"></div>
+                    </div>
+                    
+                    <!-- Agora (Pendentes) -->
+                    <div id="section-agora">
+                        <h2 class="text-[var(--brand-orange)] font-medium mb-4 flex items-center gap-2">
+                            Agora <span class="bg-gradient-to-r from-[var(--brand-orange)]/30 to-[var(--brand-orange)]/5 border border-[var(--brand-orange)]/30 text-[var(--brand-orange)] text-xs py-0.5 px-2 rounded-full" id="count-agora">0</span>
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="list-agora"></div>
+                        <div id="empty-agora" class="text-[var(--text-muted)] text-sm py-12 text-center bg-[var(--bg-card)] border border-[var(--border-color)] border-dashed rounded-2xl hidden">
+                            <i class="ph ph-coffee text-3xl mb-2 text-gray-600"></i><br>
+                            Nenhum alerta pendente para hoje.
+                        </div>
+                    </div>
+
+                    <!-- Próximos -->
+                    <div id="section-proximo">
+                        <h2 class="text-sky-400 font-medium mb-4 flex items-center gap-2">
+                            Próximo <span class="bg-gradient-to-r from-sky-400/30 to-sky-400/5 border border-sky-400/30 text-sky-400 text-xs py-0.5 px-2 rounded-full" id="count-proximo">0</span>
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="list-proximo"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTORICO (Admin) -->
+            <div id="view-historico" class="hidden space-y-4 max-w-5xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-medium text-white flex items-center gap-3">Relatório Administrativo
+                            <button onclick="logoutAdmin()" title="Sair do modo Admin" class="text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white px-2.5 py-1 rounded-full transition-colors"><i class="ph ph-sign-out"></i> Sair</button>
+                        </h2>
+                        <p id="report-summary" class="text-sm text-[var(--text-muted)] mt-1">Carregando...</p>
+                    </div>
+                    <button onclick="exportToCSV()" class="flex items-center justify-center gap-2 text-sm bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-color)] px-4 py-2.5 rounded-lg transition-colors">
+                        <i class="ph ph-download-simple"></i> Exportar CSV
+                    </button>
+                </div>
+
+                <!-- Filtros: dia / semana / mês / todos -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs text-[var(--text-muted)] mr-1 flex items-center gap-1"><i class="ph ph-funnel"></i> Período:</span>
+                    <button id="report-filter-hoje" onclick="setReportFilter('hoje')" class="text-xs font-medium px-4 py-2 rounded-lg border transition-colors">Hoje</button>
+                    <button id="report-filter-semana" onclick="setReportFilter('semana')" class="text-xs font-medium px-4 py-2 rounded-lg border transition-colors">Semana</button>
+                    <button id="report-filter-mes" onclick="setReportFilter('mes')" class="text-xs font-medium px-4 py-2 rounded-lg border transition-colors">Mês</button>
+                    <button id="report-filter-todos" onclick="setReportFilter('todos')" class="text-xs font-medium px-4 py-2 rounded-lg border transition-colors">Todos</button>
+                </div>
+
+                <div id="report-list" class="report-list space-y-3 max-h-[calc(100vh-340px)] min-h-[120px] overflow-y-auto pr-1">
+                    <!-- Populated by JS -->
+                </div>
+                <div id="report-empty" class="hidden text-[var(--text-muted)] text-sm py-12 text-center bg-[var(--bg-card)] border border-[var(--border-color)] border-dashed rounded-2xl">
+                    <i class="ph ph-chart-bar text-3xl mb-2 text-gray-600"></i><br>
+                    Nenhum registro no período selecionado.
+                </div>
+            </div>
+
+            <!-- CONCLUIDOS -->
+            <div id="view-concluidos" class="hidden space-y-4">
+                <h2 class="text-xl font-medium text-white mb-6">Alertas Concluídos</h2>
+                <div id="list-concluidos-view" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- CONFIGURACOES -->
+            <div id="view-config" class="hidden space-y-6 max-w-2xl">
+                <h2 class="text-xl font-medium text-white mb-6">Configurações do Sistema</h2>
+                
+                <div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6">
+                    <h3 class="text-[var(--brand-orange)] font-medium mb-2 flex items-center gap-2"><i class="ph ph-database"></i> Banco de dados</h3>
+                    <p id="db-status" class="text-sm text-[var(--text-muted)]">Carregando...</p>
+                </div>
+
+                <div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6">
+                    <h3 class="text-[var(--brand-orange)] font-medium mb-2 flex items-center gap-2"><i class="ph ph-phone-call"></i> Som do Alerta</h3>
+                    <p class="text-sm text-[var(--text-muted)] mb-5">Escolha o toque que toca quando um alerta disparar. O padrão é o toque de chamada (rede social).</p>
+                    <div id="sound-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                        <!-- Populated by JS -->
+                    </div>
+                    <button onclick="testAlertSound()" class="bg-[var(--bg-input)] border border-[var(--border-color)] hover:border-[var(--brand-orange)] text-white px-4 py-2.5 rounded-lg text-sm transition-colors">
+                        <i class="ph ph-play"></i> Testar som
+                    </button>
+                </div>
+
+                <div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6">
+                    <h3 class="text-[var(--brand-orange)] font-medium mb-4 flex items-center gap-2"><i class="ph ph-image"></i> Perfil</h3>
+                    <div class="flex items-center gap-6">
+                        <img id="settings-avatar" src="https://placehold.co/100x100/18181b/ff5a00?text=AD" alt="Profile" class="w-20 h-20 rounded-full border border-[var(--border-color)] object-cover">
+                        <div>
+                            <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
+                            <button onclick="document.getElementById('avatar-upload').click()" class="px-4 py-2 bg-[var(--bg-input)] border border-[var(--border-color)] hover:border-[var(--brand-orange)] rounded-lg text-sm text-white transition-colors">
+                                Fazer Upload de Foto
+                            </button>
+                            <p class="text-xs text-[var(--text-muted)] mt-2">Recomendado: Imagem 1:1 Quadrada.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6">
+                    <h3 class="text-[var(--brand-orange)] font-medium mb-2 flex items-center gap-2"><i class="ph ph-clock-counter-clockwise"></i> Tempos de Adiar (Push)</h3>
+                    <p class="text-sm text-[var(--text-muted)] mb-6">Configure os minutos disponíveis no botão "Adiar" quando a notificação em tela cheia tocar.</p>
+                    
+                    <div class="flex gap-2 mb-6">
+                        <input type="number" id="new-snooze-time" placeholder="Minutos (ex: 45)" class="w-full max-w-[200px] bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg py-2.5 px-3 text-sm text-white focus:outline-none focus:border-[var(--brand-orange)]">
+                        <button onclick="addSnoozeOption()" class="bg-[var(--bg-input)] border border-[var(--border-color)] hover:border-[var(--brand-orange)] text-white px-4 py-2.5 rounded-lg text-sm transition-colors">
+                            Adicionar Tempo
+                        </button>
+                    </div>
+                    
+                    <div id="snooze-options-list" class="flex flex-wrap gap-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="bg-[var(--bg-card)] border border-red-900/30 rounded-2xl p-6">
+                     <h3 class="text-red-500 font-medium mb-2 flex items-center gap-2"><i class="ph ph-trash"></i> Zona de Perigo</h3>
+                     <p class="text-sm text-[var(--text-muted)] mb-4">Isso irá apagar todos os leads, históricos e configurações desta máquina.</p>
+                     <button onclick="limparTudo()" class="px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white rounded-lg text-sm font-medium transition-colors">Apagar todos os dados</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Na versão Desktop ela fica fixa ao lado. Na Mobile ela vira um modal que entra da direita -->
+    <aside id="sidebar-form" class="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-[var(--bg-card)] border-l border-[var(--border-color)] transform translate-x-full lg:translate-x-0 lg:relative lg:w-[400px] transition-transform duration-300 flex flex-col shrink-0 shadow-2xl lg:shadow-none">
+        
+        <div class="p-6 border-b border-[var(--border-color)] flex items-center justify-between bg-[var(--bg-card)]">
+            <h2 id="sidebar-form-title" class="text-xl font-semibold text-white">Novo Alerta</h2>
+            <div class="flex items-center gap-2">
+                <!-- Cancelar edição (só aparece ao editar) -->
+                <button type="button" id="cancel-edit-btn" onclick="cancelEdit()" class="hidden text-xs text-[var(--text-muted)] hover:text-white px-3 py-1.5 rounded-lg border border-[var(--border-color)] transition-colors">Cancelar edição</button>
+                <!-- Botão de fechar (Apenas mobile) -->
+                <button onclick="toggleSidebar()" class="lg:hidden text-[var(--text-muted)] hover:text-white text-2xl">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6 overflow-y-auto hide-scroll flex-1 bg-[var(--bg-base)] lg:bg-[var(--bg-card)]">
+            <form id="new-alert-form" onsubmit="handleCreateAlert(event)" class="space-y-5">
+                
+                <!-- Nome -->
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Nome</label>
+                    <div class="relative">
+                        <i class="ph ph-user absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-lg"></i>
+                        <input type="text" id="alert-name" required placeholder="Digite o nome da pessoa" class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-[var(--brand-orange)] text-white placeholder-[var(--border-color)] transition-colors">
+                    </div>
+                </div>
+
+                <!-- Telefone -->
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Telefone</label>
+                    <div class="relative">
+                        <i class="ph ph-whatsapp-logo absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-lg"></i>
+                        <input type="text" id="alert-phone" required oninput="this.value = maskPhone(this.value)" placeholder="(11) 90000-0000" maxlength="15" class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-[var(--brand-orange)] text-white placeholder-[var(--border-color)] transition-colors">
+                    </div>
+                </div>
+
+                <!-- Assunto / Qual alerta -->
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Qual o alerta?</label>
+                    <textarea id="alert-subject" required placeholder="Descreva o que precisa ser lembrado" rows="2" class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg p-3 text-sm focus:outline-none focus:border-[var(--brand-orange)] text-white placeholder-[var(--border-color)] transition-colors resize-none"></textarea>
+                </div>
+
+                <!-- Data e Hora -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Data</label>
+                        <div class="relative">
+                             <i class="ph ph-calendar absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"></i>
+                            <input type="date" id="alert-date" required class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg pl-9 pr-2 py-2.5 text-sm focus:outline-none focus:border-[var(--brand-orange)] text-white cursor-pointer [color-scheme:dark]">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Horário</label>
+                        <div class="relative">
+                             <i class="ph ph-clock absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"></i>
+                            <input type="time" id="alert-time" required class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg pl-9 pr-2 py-2.5 text-sm focus:outline-none focus:border-[var(--brand-orange)] text-white cursor-pointer [color-scheme:dark]">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Agendar rápido</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <!-- Laranja -->
+                        <button type="button" onclick="setQuickTime(15)" class="py-2.5 bg-orange-500/10 border border-orange-500/50 text-orange-500 hover:bg-orange-500 hover:text-white rounded-lg text-xs font-semibold transition-all">Hoje +15m</button>
+                        <!-- Verde -->
+                        <button type="button" onclick="setQuickTime(30)" class="py-2.5 bg-[#22c55e]/10 border border-[#22c55e]/50 text-[#22c55e] hover:bg-[#22c55e] hover:text-white rounded-lg text-xs font-semibold transition-all">+30min</button>
+                        <!-- Roxo -->
+                        <button type="button" onclick="setQuickTime(60)" class="py-2.5 bg-purple-500/10 border border-purple-500/50 text-purple-500 hover:bg-purple-500 hover:text-white rounded-lg text-xs font-semibold transition-all">+1h</button>
+                        <!-- Amanhã: sempre às 09:00 -->
+                        <button type="button" onclick="setTomorrowMorning()" class="py-2.5 bg-orange-500/10 border border-orange-500/50 text-orange-500 hover:bg-orange-500 hover:text-white rounded-lg text-xs font-semibold transition-all">Amanhã 9h</button>
+                        <!-- Finde (final de semana): sempre cai na segunda às 09:30 -->
+                        <button type="button" onclick="setNextMondayMorning()" class="col-span-4 mt-2 py-2.5 bg-violet-500/10 border border-violet-500/50 text-violet-400 hover:bg-violet-500 hover:text-white rounded-lg text-xs font-semibold transition-all"><i class="ph ph-moon-stars"></i> Finde — chega na segunda-feira 09h30</button>
+                    </div>
+                </div>
+
+                <!-- Categoria -->
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Categoria (opcional)</label>
+                    <div class="relative">
+                        <i class="ph ph-tag absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"></i>
+                        <select id="alert-category" class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:border-[var(--brand-orange)] text-white appearance-none cursor-pointer">
+                            <option value="Ligação">Ligação</option>
+                            <option value="WhatsApp" selected>WhatsApp</option>
+                            <option value="Retorno">Retorno</option>
+                            <option value="Reunião">Reunião</option>
+                        </select>
+                        <i class="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <!-- Observações -->
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1.5">Observações (opcional)</label>
+                    <textarea id="alert-notes" placeholder="Informações adicionais..." rows="3" class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg p-3 text-sm focus:outline-none focus:border-[var(--brand-orange)] text-white placeholder-[var(--border-color)] transition-colors resize-none"></textarea>
+                </div>
+
+                <button id="submit-alert-btn" type="submit" class="w-full bg-[var(--brand-orange)] hover:bg-[var(--brand-orange-hover)] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors mt-4 shadow-lg shadow-[var(--brand-orange)]/20">
+                    <i class="ph ph-plus-circle text-lg"></i> Criar Alerta
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Fundo Escuro do Mobile ao abrir o menu -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden glass-panel"></div>
+
+    <!-- Botão Mobile para abrir form -->
+    <button onclick="toggleSidebar()" class="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-[var(--brand-orange)] rounded-full shadow-lg shadow-orange-500/30 flex items-center justify-center text-white z-30 hover:scale-105 transition-transform">
+        <i class="ph ph-plus text-2xl"></i>
+    </button>
+    
+
+    <div id="active-alert-overlay" class="push-overlay fixed inset-0 z-[9999] hidden flex items-center justify-center p-4">
+        <div id="active-alert-modal" class="push-modal relative w-full max-w-md">
+            <!-- Aura giratória atrás do modal -->
+            <div class="push-glow absolute -inset-1 rounded-[32px]"></div>
+
+            <div class="relative bg-[var(--bg-card)]/95 backdrop-blur-xl border border-[var(--brand-orange)]/60 rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(255,90,0,0.35)]">
+                <div class="relative p-8 pb-5 pt-10 flex flex-col items-center text-center bg-gradient-to-b from-[var(--brand-orange)]/15 via-[var(--brand-orange)]/5 to-transparent">
+                    <!-- Badge Agora / Atrasado -->
+                    <span id="push-late-badge" class="absolute top-4 right-4 text-[10px] font-bold tracking-widest px-2.5 py-1 rounded-full bg-[var(--brand-orange)]/15 border border-[var(--brand-orange)]/40 text-[var(--brand-orange)] flex items-center gap-1">AGORA</span>
+
+                    <!-- Sino pulsante -->
+                    <div class="push-bell-wrap relative mb-7 mt-2">
+                        <div class="push-bell-ring absolute inset-0 rounded-full"></div>
+                        <div class="relative w-24 h-24 bg-[var(--brand-orange)]/20 rounded-full flex items-center justify-center border border-[var(--brand-orange)]/60">
+                            <i id="push-bell-icon" class="ph-fill ph-bell-ringing text-5xl text-[var(--brand-orange)]"></i>
+                        </div>
+                    </div>
+
+                    <h3 class="text-[var(--brand-orange)] font-bold text-xs tracking-[0.25em] uppercase mb-3 flex items-center gap-2"><i class="ph ph-bell-ringing"></i> Lembrete</h3>
+                    <h2 id="push-name" class="text-4xl font-bold text-white mb-2 leading-tight">Nome do Lead</h2>
+
+                    <div class="flex items-center justify-center gap-2 text-[var(--text-muted)] mb-3">
+                        <i class="ph ph-whatsapp-logo text-green-500 text-lg"></i>
+                        <span id="push-phone" class="font-mono text-lg">(00) 00000-0000</span>
+                    </div>
+
+                    <span id="push-category" class="text-[11px] px-2.5 py-1 rounded-full bg-[var(--bg-input)] border border-[var(--border-color)] text-[var(--text-muted)] flex items-center gap-1 mb-4"><i class="ph ph-tag"></i> WhatsApp</span>
+
+                    <p id="push-subject" class="text-base text-gray-200 italic px-4 text-center">"Assunto do alerta vai aqui"</p>
+                </div>
+
+                <div class="p-6 pt-4 flex flex-col gap-4">
+                    <div class="flex items-center justify-center gap-2 text-sm text-[var(--text-muted)]">
+                        <i class="ph ph-clock"></i>
+                        <span>Agendado para <strong id="push-time" class="text-white text-base">00:00</strong></span>
+                    </div>
+
+                    <!-- Botão de Concluir GIGANTE (Única saída positiva) -->
+                    <button onclick="openCompletionFlow()" class="w-full bg-[var(--brand-orange)] hover:bg-[var(--brand-orange-hover)] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-[var(--brand-orange)]/30 text-lg">
+                        <i class="ph-bold ph-check-circle text-2xl"></i> Concluído
+                    </button>
+
+                    <!-- Divisor e Opções de Adiar Obrigatórias -->
+                    <div class="text-center">
+                        <p class="text-xs text-[var(--text-muted)] mb-3">Ou escolha um tempo para adiar:</p>
+                        <div id="push-snooze-container" class="grid grid-cols-2 gap-2">
+                            <!-- Populated by JS based on Admin settings -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Senha do Admin -->
+    <div id="admin-lock-overlay" class="fixed inset-0 bg-black/80 glass-panel hidden z-[99998] flex items-center justify-center p-4">
+        <div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl w-full max-w-sm p-6 shadow-2xl relative">
+            <button onclick="closeAdminLock()" class="absolute top-4 right-4 text-[var(--text-muted)] hover:text-white"><i class="ph ph-x text-xl"></i></button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-11 h-11 rounded-full bg-red-500/10 text-red-500 border border-red-500/30 flex items-center justify-center shrink-0"><i class="ph-bold ph-shield-lock text-xl"></i></div>
+                <div>
+                    <h3 class="text-lg font-semibold text-white">Área do Admin</h3>
+                    <p class="text-xs text-[var(--text-muted)]">Relatório administrativo</p>
+                </div>
+            </div>
+            <p class="text-sm text-[var(--text-muted)] mb-4">Digite a senha para acessar o relatório.</p>
+            <input type="password" id="admin-password" placeholder="Senha" autocomplete="off" class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--brand-orange)] mb-4" onkeydown="if(event.key==='Enter')submitAdminPassword()">
+            <button onclick="submitAdminPassword()" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors">Entrar</button>
+            <p id="admin-password-error" class="hidden text-red-400 text-xs mt-3 text-center">Senha incorreta. Tente novamente.</p>
+        </div>
+    </div>
+
+
+    <div id="completion-overlay" class="fixed inset-0 bg-black/80 glass-panel hidden z-[99999] flex items-center justify-center p-4">
+        <div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <!-- Botão de Voltar para o Push se o usuário se arrepender -->
+            <button onclick="cancelCompletionFlow()" class="absolute top-4 right-4 text-[var(--text-muted)] hover:text-white"><i class="ph ph-x text-xl"></i></button>
+            
+            <h3 class="text-xl font-semibold mb-2 text-white flex items-center gap-2"><i class="ph-fill ph-check-circle text-green-500"></i> Finalizar Alerta</h3>
+            <p class="text-sm text-[var(--text-muted)] mb-6">Como foi o contato com <strong id="completion-lead-name" class="text-white">Lead</strong>?</p>
+            
+            <textarea id="completion-notes" rows="3" placeholder="Ex: Cliente atendeu, pediu para retornar amanhã." class="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 text-sm focus:outline-none focus:border-green-500 text-white resize-none mb-6" required></textarea>
+            
+            <!-- Follow-up 24h -->
+            <label class="flex items-start gap-3 cursor-pointer p-4 border border-[var(--border-color)] rounded-xl bg-[var(--bg-input)] hover:border-[var(--brand-orange)] transition-colors mb-6 group">
+                <div class="relative flex items-center justify-center mt-0.5">
+                    <input type="checkbox" id="check-24h" class="peer appearance-none w-5 h-5 border-2 border-[var(--text-muted)] rounded checked:bg-[var(--brand-orange)] checked:border-[var(--brand-orange)] transition-all cursor-pointer">
+                    <i class="ph-bold ph-check absolute text-white opacity-0 peer-checked:opacity-100 text-xs pointer-events-none"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-white group-hover:text-[var(--brand-orange)] transition-colors">Criar alerta de Follow-up 24h?</p>
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Automaticamente gera um alerta para amanhã neste mesmo horário.</p>
+                </div>
+            </label>
+
+            <button onclick="confirmCompletion()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors">
+                <i class="ph ph-floppy-disk"></i> Salvar e Concluir
+            </button>
+        </div>
+    </div>
+
+
+    <script src="js/config.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
